@@ -54,7 +54,7 @@ func (s *UserService) Login(email, password string) (string, *entities.User, err
 	claims["user_id"] = user.ID
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
-	t, err := token.SignedString(jwtSecret)
+	t, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		return "", nil, err
 	}

@@ -41,7 +41,8 @@ func main() {
 	userService := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(userService)
 
-	app.Post("/user", userHandler.CreateUser)
+	app.Post("/auth/signup", userHandler.Register)
+	app.Post("/auth/signin", userHandler.Login)
 
 	app.Listen(":8000")
 }
