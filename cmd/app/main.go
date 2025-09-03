@@ -36,6 +36,9 @@ func main() {
 	if err := db.AutoMigrate(&entities.User{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
+	if err := db.AutoMigrate(&entities.Price{}); err != nil {
+		log.Fatalf("failed to migrate database: %v", err)
+	}
 
 	userRepo := userRepository.NewGormUserRepository(db)
 	userService := userUseCase.NewUserService(userRepo)
