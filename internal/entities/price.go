@@ -21,9 +21,20 @@ func (u *Price) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-func PreloadPrev(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Next", PreloadPrev)
+func PreloadPrev(depth int) func(*gorm.DB) *gorm.DB {
+	return func(d *gorm.DB) *gorm.DB {
+		if depth <= 0 {
+			return d
+		}
+		return d.Preload("Prev", PreloadPrev(depth-1))
+	}
 }
-func PreloadNext(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Next", PreloadNext)
+
+func PreloadNext(depth int) func(*gorm.DB) *gorm.DB {
+	return func(d *gorm.DB) *gorm.DB {
+		if depth <= 0 {
+			return d
+		}
+		return d.Preload("Prev", PreloadNext(depth-1))
+	}
 }

@@ -19,6 +19,11 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-func PreloadPrices(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Prices", PreloadPrices)
+func PreloadPrices(depth int) func(*gorm.DB) *gorm.DB {
+	return func(d *gorm.DB) *gorm.DB {
+		if depth <= 0 {
+			return d
+		}
+		return d.Preload("Prices", PreloadPrices(depth-1))
+	}
 }
