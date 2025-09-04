@@ -11,19 +11,12 @@ type User struct {
 	Password string    `json:"password"`
 	Name     string    `json:"name"`
 
-	Prices []Price `gorm:"foreignKey:UserID" json:"prices"`
+	Prices     []Price    `gorm:"foreignKey:UserID"`
+	Categories []Category `gorm:"foreignKey:UserID"`
+	Records    []Record   `gorm:"foreignKey:UserID"`
 }
 
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *User) BeforeCreate(d *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
-}
-
-func PreloadPrices(depth int) func(*gorm.DB) *gorm.DB {
-	return func(d *gorm.DB) *gorm.DB {
-		if depth <= 0 {
-			return d
-		}
-		return d.Preload("Prices", PreloadPrices(depth-1))
-	}
 }
