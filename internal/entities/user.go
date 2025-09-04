@@ -11,9 +11,10 @@ type User struct {
 	Password string    `json:"password"`
 	Name     string    `json:"name"`
 
-	Prices     []Price    `gorm:"foreignKey:UserID"`
-	Categories []Category `gorm:"foreignKey:UserID"`
-	Records    []Record   `gorm:"foreignKey:UserID"`
+	Prices     []Price    `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Categories []Category `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Records    []Record   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Preference Preference `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 func (u *User) BeforeCreate(d *gorm.DB) (err error) {

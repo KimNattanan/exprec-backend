@@ -21,3 +21,21 @@ func (u *Price) BeforeCreate(d *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
 }
+
+func (p *Price) BeforeDelete(d *gorm.DB) (err error) {
+	if p.PrevID != nil {
+		if err := d.Model(&Price{}).
+			Where("id = ?", p.PrevID).
+			Update("next_id", p.NextID).Error; err != nil {
+			return err
+		}
+	}
+	if p.NextID != nil {
+		if err := d.Model(&Price{}).
+			Where("id = ?", p.NextID).
+			Update("prev_id", p.PrevID).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}

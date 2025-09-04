@@ -10,4 +10,3 @@ func PreloadDepth(s string, depth int) func(*gorm.DB) *gorm.DB {
 		return d.Preload(s, PreloadDepth(s, depth-1))
 	}
 }
-

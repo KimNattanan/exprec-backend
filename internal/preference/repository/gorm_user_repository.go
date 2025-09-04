@@ -24,25 +24,3 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 	}
 	return &user, nil
 }
-
-func (r *GormUserRepository) Patch(id string, user *entities.User) error {
-	result := r.db.Model(&entities.User{}).Where("id = ?", user.ID).Updates(user)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
-}
-
-func (r *GormUserRepository) Delete(id string) error {
-	result := r.db.Delete(&entities.User{}, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
-}
