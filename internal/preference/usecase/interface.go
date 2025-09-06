@@ -1,8 +1,12 @@
 package usecase
 
-import "github.com/KimNattanan/exprec-backend/internal/entities"
+import (
+	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/google/uuid"
+)
 
-type UserUseCase interface {
-	Register(user *entities.User) error
-	Login(email, password string) (string, *entities.User, error)
+type PreferenceUseCase interface {
+	FindByUserID(userID uuid.UUID) (*entities.Preference, error)
+	Save(preference *entities.Preference) error
+	Patch(userID uuid.UUID, preference *entities.Preference) (*entities.Preference, error)
 }

@@ -2,8 +2,7 @@ package dto
 
 import "github.com/google/uuid"
 
-type UserResponse struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
-	Name  string    `json:"name"`
+type PreferenceResponse struct {
+	UserID uuid.UUID `json:"user_id"`
+	Theme  string    `json:"theme"`
 }

@@ -1,11 +1,12 @@
 package repository
 
-import "github.com/KimNattanan/exprec-backend/internal/entities"
+import (
+	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/google/uuid"
+)
 
 type PreferenceRepository interface {
-	Save(pref *entities.Preference) error
-	// FindByID(id string) (*entities.User, error)
-	// FindAll() ([]*entities.User, error)
-	// Patch(id string, user *entities.User) error
-	// Delete(id string) error
+	FindByUserID(userID uuid.UUID) (*entities.Preference, error)
+	Save(preference *entities.Preference) error
+	Patch(userID uuid.UUID, preference *entities.Preference) error
 }
