@@ -11,18 +11,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 )
 
 type UserService struct {
-	repo repository.UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserUseCase {
-	return &UserService{repo: repo}
+func NewUserService(userRepo repository.UserRepository) UserUseCase {
+	return &UserService{userRepo: userRepo}
 }
 
 func (s *UserService) Register(user *entities.User) error {
-	existingUser, err := s.repo.FindByEmail(user.Email)
+	existingUser, err := s.userRepo.FindByEmail(user.Email)
 	if existingUser != nil {
 		return apperror.ErrAlreadyExists
 	}
@@ -30,17 +31,17 @@ func (s *UserService) Register(user *entities.User) error {
 		return err
 	}
 
-	pw, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(pw)
+	user.Password = string(hashedPassword)
 
-	return s.repo.Save(user)
+	return s.userRepo.Save(user)
 }
 
 func (s *UserService) Login(email, password string) (string, *entities.User, error) {
-	user, err := s.repo.FindByEmail(email)
+	user, err := s.userRepo.FindByEmail(email)
 	if err != nil || user == nil {
 		return "", nil, err
 	}
@@ -49,38 +50,75 @@ func (s *UserService) Login(email, password string) (string, *entities.User, err
 		return "", nil, err
 	}
 
-	jwtSecret := os.Getenv("JWT_SECRET")
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = user.ID
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 3 days
+	}
 
-	t, err := token.SignedString([]byte(jwtSecret))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		return "", nil, err
 	}
-	return t, user, nil
+
+	return tokenString, user, nil
 }
 
 func (s *UserService) FindByEmail(email string) (*entities.User, error) {
-	return s.repo.FindByEmail(email)
+	return s.userRepo.FindByEmail(email)
 }
 
 func (s *UserService) FindByID(id uuid.UUID) (*entities.User, error) {
-	return s.repo.FindByID(id)
+	return s.userRepo.FindByID(id)
 }
 
 func (s *UserService) FindAll() ([]*entities.User, error) {
-	return s.repo.FindAll()
+	return s.userRepo.FindAll()
 }
 
 func (s *UserService) Patch(id uuid.UUID, user *entities.User) (*entities.User, error) {
-	if err := s.repo.Patch(id, user); err != nil {
+	if err := s.userRepo.Patch(id, user); err != nil {
 		return nil, err
 	}
-	return s.repo.FindByID(id)
+	return s.userRepo.FindByID(id)
 }
 
 func (s *UserService) Delete(id uuid.UUID) error {
-	return s.repo.Delete(id)
+	return s.userRepo.Delete(id)
+}
+
+func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{}, token *oauth2.Token) (string, *entities.User, error) {
+	email, ok := userInfo["email"].(string)
+	name, _ := userInfo["name"].(string)
+	if !ok || email == "" {
+		return "", nil, apperror.ErrInvalidData
+	}
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil && !errors.Is(err, apperror.ErrRecordNotFound) {
+		return "", nil, err
+	}
+	if user == nil {
+		user = &entities.User{
+			Email: email,
+			Name:  name,
+			Password: "",
+		}
+		if err := s.userRepo.Save(user); err != nil {
+			return "", nil, err
+		}
+	}
+	user.Password = ""
+
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 3 days
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
+	if err != nil {
+		return "", nil, err
+	}
+	return tokenString, user, nil
 }

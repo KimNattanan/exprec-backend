@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/google/uuid"
+	"golang.org/x/oauth2"
 )
 
 type UserUseCase interface {
@@ -13,4 +14,5 @@ type UserUseCase interface {
 	FindAll() ([]*entities.User, error)
 	Patch(id uuid.UUID, user *entities.User) (*entities.User, error)
 	Delete(id uuid.UUID) error
+	LoginOrRegisterWithGoogle(userInfo map[string]interface{}, oauthToken *oauth2.Token) (string, *entities.User, error)
 }

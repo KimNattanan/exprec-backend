@@ -16,7 +16,7 @@ func NewGormUserRepository(db *gorm.DB) UserRepository {
 
 func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 	var user entities.User
-	if err := r.db.Where(email).First(&user).Error; err != nil {
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -24,7 +24,7 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 
 func (r *GormUserRepository) FindByID(id uuid.UUID) (*entities.User, error) {
 	var user entities.User
-	if err := r.db.First(&user, id).Error; err != nil {
+	if err := r.db.First(&user, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -47,7 +47,7 @@ func (r *GormUserRepository) Save(user *entities.User) error {
 }
 
 func (r *GormUserRepository) Patch(id uuid.UUID, user *entities.User) error {
-	result := r.db.Model(&entities.User{}).Where(id).Updates(user)
+	result := r.db.Model(&entities.User{}).Where("id = ?", id).Updates(user)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -58,7 +58,7 @@ func (r *GormUserRepository) Patch(id uuid.UUID, user *entities.User) error {
 }
 
 func (r *GormUserRepository) Delete(id uuid.UUID) error {
-	result := r.db.Delete(&entities.User{}, id)
+	result := r.db.Delete(&entities.User{}, "id = ?", id)
 	if result.Error != nil {
 		return result.Error
 	}
