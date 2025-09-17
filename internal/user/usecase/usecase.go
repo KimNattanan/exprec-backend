@@ -100,8 +100,8 @@ func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{},
 	}
 	if user == nil {
 		user = &entities.User{
-			Email: email,
-			Name:  name,
+			Email:    email,
+			Name:     name,
 			Password: "",
 		}
 		if err := s.userRepo.Save(user); err != nil {

@@ -122,6 +122,7 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 
 	isProd := os.Getenv("ENV") == "production"
 
+	c.ClearCookie("oauthstate")
 	c.Cookie(&fiber.Cookie{
 		Name:     "loginToken",
 		Value:    jwtToken,
