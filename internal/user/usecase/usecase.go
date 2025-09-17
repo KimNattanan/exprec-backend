@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/KimNattanan/exprec-backend/internal/user/dto"
 	"github.com/KimNattanan/exprec-backend/internal/user/repository"
 	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/golang-jwt/jwt/v5"
@@ -51,8 +52,8 @@ func (s *UserService) Login(email, password string) (string, *entities.User, err
 	}
 
 	claims := jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 3 days
+		"user": dto.ToUserResponse(user),
+		"exp":  time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -111,8 +112,8 @@ func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{},
 	user.Password = ""
 
 	claims := jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 3 days
+		"user": dto.ToUserResponse(user),
+		"exp":  time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwtSecret := os.Getenv("JWT_SECRET")

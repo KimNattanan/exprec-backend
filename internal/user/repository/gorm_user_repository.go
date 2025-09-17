@@ -16,7 +16,7 @@ func NewGormUserRepository(db *gorm.DB) UserRepository {
 
 func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 	var user entities.User
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.Preload("Prices").Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -24,7 +24,7 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 
 func (r *GormUserRepository) FindByID(id uuid.UUID) (*entities.User, error) {
 	var user entities.User
-	if err := r.db.First(&user, "id = ?", id).Error; err != nil {
+	if err := r.db.Preload("Prices").First(&user, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

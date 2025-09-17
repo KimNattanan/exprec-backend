@@ -12,6 +12,7 @@ import (
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -122,15 +123,36 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 
 	isProd := os.Getenv("ENV") == "production"
 
-	c.ClearCookie("oauthstate")
 	c.Cookie(&fiber.Cookie{
 		Name:     "loginToken",
 		Value:    jwtToken,
 		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: false,
+		HTTPOnly: true,
 		Secure:   isProd,
 		SameSite: "Lax",
 	})
+	c.Cookie(&fiber.Cookie{
+		Name:     "oauthstate",
+		Expires:  time.Now(),
+		HTTPOnly: true,
+		Secure:   false,
+	})
 
 	return c.Redirect(os.Getenv("FRONTEND_URL"), fiber.StatusSeeOther)
+}
+
+func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
+	idString := c.Params("id")
+	if idString == "" {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	user, err := h.userUseCase.FindByID(id)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	return c.JSON(dto.ToUserResponse(user))
 }

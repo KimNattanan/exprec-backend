@@ -28,4 +28,8 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 	authGroup.Post("/signin", userHandler.Login)
 	authGroup.Get("/google/login", userHandler.GoogleLogin)
 	authGroup.Get("/google/callback", userHandler.GoogleCallback)
+
+	userGroup := api.Group("/users")
+	userGroup.Get("/:id", userHandler.FindUserByID)
+	// userGroup.Get("/:id/prices", priceHandler.FindAllPricesByUserID)
 }
