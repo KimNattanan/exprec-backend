@@ -11,7 +11,7 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type PatchUserRequest struct {
+type UserPatch struct {
 	Name string `json:"name" validate:"required"`
 }
 

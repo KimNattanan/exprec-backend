@@ -1,4 +1,4 @@
-package repository
+package usecase
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type PriceRepository interface {
+type PriceUseCase interface {
 	Save(ctx context.Context, price *entities.Price) error
 	FindByID(id uuid.UUID) (*entities.Price, error)
-	Patch(ctx context.Context, id uuid.UUID, price *entities.Price) error
+	Patch(ctx context.Context, id uuid.UUID, price *entities.Price) (*entities.Price, error)
 	Delete(id uuid.UUID) error
 }

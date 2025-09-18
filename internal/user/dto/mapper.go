@@ -12,11 +12,11 @@ func ToUserResponse(user *entities.User) *UserResponse {
 }
 
 func ToUserResponseList(users []*entities.User) []*UserResponse {
-	res := make([]*UserResponse, len(users))
+	result := make([]*UserResponse, len(users))
 	for i, u := range users {
-		res[i] = ToUserResponse(u)
+		result[i] = ToUserResponse(u)
 	}
-	return res
+	return result
 }
 
 func ToUserEntity(req *RegisterRequest) *entities.User {
