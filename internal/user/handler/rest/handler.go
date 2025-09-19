@@ -142,13 +142,9 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 }
 
 func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
-	idString := c.Params("id")
-	if idString == "" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-	id, err := uuid.Parse(idString)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return responses.Error(c, err)
+		return responses.Error(c, appError.ErrInvalidData)
 	}
 	user, err := h.userUseCase.FindByID(id)
 	if err != nil {

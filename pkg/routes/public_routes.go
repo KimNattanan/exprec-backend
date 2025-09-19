@@ -6,9 +6,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
+	"github.com/KimNattanan/exprec-backend/internal/transaction"
+
 	userHandler "github.com/KimNattanan/exprec-backend/internal/user/handler/rest"
 	userRepository "github.com/KimNattanan/exprec-backend/internal/user/repository"
 	userUseCase "github.com/KimNattanan/exprec-backend/internal/user/usecase"
+
+	priceHandler "github.com/KimNattanan/exprec-backend/internal/price/handler/rest"
+	priceRepository "github.com/KimNattanan/exprec-backend/internal/price/repository"
+	priceUseCase "github.com/KimNattanan/exprec-backend/internal/price/usecase"
 )
 
 func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
@@ -17,9 +23,15 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 
 	// === Dependency Wiring ===
 
+	txManager := transaction.NewGormTxManager(db)
+
 	userRepo := userRepository.NewGormUserRepository(db)
 	userService := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(userService, os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"))
+
+	priceRepo := priceRepository.NewGormPriceRepository(db)
+	priceService := priceUseCase.NewPriceService(priceRepo, txManager)
+	priceHandler := priceHandler.NewHttpPriceHandler(priceService)
 
 	// === Public Routes ===
 
@@ -31,5 +43,9 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 
 	userGroup := api.Group("/users")
 	userGroup.Get("/:id", userHandler.FindUserByID)
-	// userGroup.Get("/:id/prices", priceHandler.FindAllPricesByUserID)
+
+	priceGroup := api.Group("/prices")
+	priceGroup.Post("/", priceHandler.Save)
+	priceGroup.Patch("/:id", priceHandler.Patch)
+	priceGroup.Delete("/", priceHandler.Delete)
 }

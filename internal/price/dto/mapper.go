@@ -26,55 +26,65 @@ func ToPriceResponseList(prices []*entities.Price) []*PriceResponse {
 
 func FromPriceSaveRequest(price *PriceSaveRequest) (*entities.Price, error) {
 	var (
-		err    error
-		prevID uuid.UUID
-		nextID uuid.UUID
+		err       error
+		userID    uuid.UUID
+		prevID    uuid.UUID
+		prevIDPtr *uuid.UUID
+		nextID    uuid.UUID
+		nextIDPtr *uuid.UUID
 	)
+	userID, err = uuid.Parse(price.UserID)
+	if err != nil {
+		return nil, err
+	}
 	if price.PrevID != "" {
 		prevID, err = uuid.Parse(price.PrevID)
 		if err != nil {
 			return nil, err
 		}
+		prevIDPtr = &prevID
 	}
 	if price.NextID != "" {
 		nextID, err = uuid.Parse(price.NextID)
 		if err != nil {
 			return nil, err
 		}
-	}
-	userID, err := uuid.Parse(price.UserID)
-	if err != nil {
-		return nil, err
+		nextIDPtr = &nextID
 	}
 	return &entities.Price{
-		PrevID:  &prevID,
-		NextID:  &nextID,
 		UserID:  userID,
+		PrevID:  prevIDPtr,
+		NextID:  nextIDPtr,
 		Amount:  price.Amount,
 		BgColor: price.BgColor,
 	}, nil
 }
-func FromPricePatchRequest(price *PriceSaveRequest) (*entities.Price, error) {
+
+func FromPricePatchRequest(price *PricePatchRequest) (*entities.Price, error) {
 	var (
-		err    error
-		prevID uuid.UUID
-		nextID uuid.UUID
+		err       error
+		prevID    uuid.UUID
+		prevIDPtr *uuid.UUID
+		nextID    uuid.UUID
+		nextIDPtr *uuid.UUID
 	)
 	if price.PrevID != "" {
 		prevID, err = uuid.Parse(price.PrevID)
 		if err != nil {
 			return nil, err
 		}
+		prevIDPtr = &prevID
 	}
 	if price.NextID != "" {
 		nextID, err = uuid.Parse(price.NextID)
 		if err != nil {
 			return nil, err
 		}
+		nextIDPtr = &nextID
 	}
 	return &entities.Price{
-		PrevID:  &prevID,
-		NextID:  &nextID,
+		PrevID:  prevIDPtr,
+		NextID:  nextIDPtr,
 		Amount:  price.Amount,
 		BgColor: price.BgColor,
 	}, nil

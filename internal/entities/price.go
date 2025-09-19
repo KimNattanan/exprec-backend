@@ -7,9 +7,9 @@ import (
 
 type Price struct {
 	ID      uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID  uuid.UUID  `gorm:"type:uuid" json:"user_id"`
 	PrevID  *uuid.UUID `gorm:"type:uuid" json:"prev_id"`
 	NextID  *uuid.UUID `gorm:"type:uuid" json:"next_id"`
-	UserID  uuid.UUID  `gorm:"type:uuid" json:"user_id"`
 	Amount  float32    `json:"amount"`
 	BgColor string     `gorm:"type:char(7)" json:"bg_color"`
 
