@@ -31,15 +31,15 @@ func (r *GormUserRepository) FindByID(id uuid.UUID) (*entities.User, error) {
 }
 
 func (r *GormUserRepository) FindAll() ([]*entities.User, error) {
-	var users []entities.User
-	if err := r.db.Find(&users).Error; err != nil {
+	var userValues []entities.User
+	if err := r.db.Find(&userValues).Error; err != nil {
 		return nil, err
 	}
-	userPtrs := make([]*entities.User, len(users))
-	for i := range users {
-		userPtrs[i] = &users[i]
+	users := make([]*entities.User, len(userValues))
+	for i := range userValues {
+		users[i] = &userValues[i]
 	}
-	return userPtrs, nil
+	return users, nil
 }
 
 func (r *GormUserRepository) Save(user *entities.User) error {

@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"fmt"
+
 	"github.com/KimNattanan/exprec-backend/internal/price/dto"
 	"github.com/KimNattanan/exprec-backend/internal/price/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
@@ -61,4 +63,17 @@ func (h *HttpPriceHandler) Delete(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 	return responses.Message(c, fiber.StatusOK, "price deleted")
+}
+
+func (h *HttpPriceHandler) FindByUserID(c *fiber.Ctx) error {
+	user_id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		fmt.Println(err)
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	prices, err := h.priceUseCase.FindByUserID(user_id)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	return c.JSON(dto.ToPriceResponseList(prices))
 }

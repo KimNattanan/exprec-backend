@@ -19,7 +19,7 @@ import (
 
 func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 
-	api := app.Group("/api/v1")
+	api := app.Group("/api/v2")
 
 	// === Dependency Wiring ===
 
@@ -47,5 +47,6 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 	priceGroup := api.Group("/prices")
 	priceGroup.Post("/", priceHandler.Save)
 	priceGroup.Patch("/:id", priceHandler.Patch)
-	priceGroup.Delete("/", priceHandler.Delete)
+	priceGroup.Delete("/:id", priceHandler.Delete)
+	priceGroup.Get("/user/:id", priceHandler.FindByUserID)
 }

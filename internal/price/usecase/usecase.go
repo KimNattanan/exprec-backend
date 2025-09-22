@@ -41,7 +41,11 @@ func (s *PriceService) Save(ctx context.Context, price *entities.Price) error {
 }
 
 func (s *PriceService) FindByID(id uuid.UUID) (*entities.Price, error) {
-	return s.FindByID(id)
+	return s.priceRepo.FindByID(id)
+}
+
+func (s *PriceService) FindByUserID(user_id uuid.UUID) ([]*entities.Price, error) {
+	return s.priceRepo.FindByUserID(user_id)
 }
 
 func (s *PriceService) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) (*entities.Price, error) {

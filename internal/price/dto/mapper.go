@@ -6,11 +6,21 @@ import (
 )
 
 func ToPriceResponse(price *entities.Price) *PriceResponse {
+	var (
+		prevID = ""
+		nextID = ""
+	)
+	if price.PrevID != nil {
+		prevID = (*price.PrevID).String()
+	}
+	if price.NextID != nil {
+		nextID = (*price.NextID).String()
+	}
 	return &PriceResponse{
-		ID:      price.ID,
-		PrevID:  *price.PrevID,
-		NextID:  *price.NextID,
-		UserID:  price.UserID,
+		UserID:  price.UserID.String(),
+		ID:      price.ID.String(),
+		PrevID:  prevID,
+		NextID:  nextID,
 		Amount:  price.Amount,
 		BgColor: price.BgColor,
 	}

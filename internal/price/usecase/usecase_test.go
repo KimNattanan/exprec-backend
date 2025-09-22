@@ -15,10 +15,11 @@ import (
 )
 
 type mockPriceRepo struct {
-	save     func(ctx context.Context, price *entities.Price) error
-	findByID func(id uuid.UUID) (*entities.Price, error)
-	patch    func(ctx context.Context, id uuid.UUID, price *entities.Price) error
-	delete   func(id uuid.UUID) error
+	save         func(ctx context.Context, price *entities.Price) error
+	findByID     func(id uuid.UUID) (*entities.Price, error)
+	findByUserID func(user_id uuid.UUID) ([]*entities.Price, error)
+	patch        func(ctx context.Context, id uuid.UUID, price *entities.Price) error
+	delete       func(id uuid.UUID) error
 }
 
 func (m *mockPriceRepo) Save(ctx context.Context, price *entities.Price) error {
@@ -26,6 +27,9 @@ func (m *mockPriceRepo) Save(ctx context.Context, price *entities.Price) error {
 }
 func (m *mockPriceRepo) FindByID(id uuid.UUID) (*entities.Price, error) {
 	return m.findByID(id)
+}
+func (m *mockPriceRepo) FindByUserID(user_id uuid.UUID) ([]*entities.Price, error) {
+	return m.findByUserID(user_id)
 }
 func (m *mockPriceRepo) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 	return m.patch(ctx, id, price)

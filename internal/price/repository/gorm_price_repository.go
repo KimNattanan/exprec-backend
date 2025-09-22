@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/google/uuid"
@@ -31,6 +32,17 @@ func (r *GormPriceRepository) FindByID(id uuid.UUID) (*entities.Price, error) {
 	}
 	return &price, nil
 }
+func (r *GormPriceRepository) FindByUserID(user_id uuid.UUID) ([]*entities.Price, error) {
+	var priceValues []entities.Price
+	if err := r.db.Preload("Prev").Preload("Next").Find(&priceValues, "user_id = ?", user_id).Error; err != nil {
+		return nil, err
+	}
+	prices := make([]*entities.Price, len(priceValues))
+	for i := range prices {
+		prices[i] = &priceValues[i]
+	}
+	return prices, nil
+}
 
 func (r *GormPriceRepository) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
@@ -48,8 +60,13 @@ func (r *GormPriceRepository) Patch(ctx context.Context, id uuid.UUID, price *en
 }
 
 func (r *GormPriceRepository) Delete(id uuid.UUID) error {
-	result := r.db.Delete(&entities.Price{}, "id = ?", id)
+	var price entities.Price
+	if err := r.db.First(&price, "id = ?", id).Error; err != nil {
+		return err
+	}
+	result := r.db.Delete(&price)
 	if result.Error != nil {
+		fmt.Println(result.Error, "!!")
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
