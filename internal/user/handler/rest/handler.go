@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -132,11 +133,20 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 	c.Cookie(&fiber.Cookie{
+		Name:     "loginToken2",
+		Value:    "test1234",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   isProd,
+		SameSite: "Lax",
+	})
+	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
 		Expires:  time.Now(),
 		HTTPOnly: true,
 		Secure:   false,
 	})
+	fmt.Println(len(jwtToken))
 
 	return c.Redirect(os.Getenv("FRONTEND_URL"), fiber.StatusSeeOther)
 }
