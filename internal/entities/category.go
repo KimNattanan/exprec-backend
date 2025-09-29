@@ -6,10 +6,10 @@ import (
 )
 
 type Category struct {
+	UserID  uuid.UUID  `gorm:"type:uuid" json:"user_id"`
 	ID      uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	PrevID  *uuid.UUID `gorm:"type:uuid" json:"prev_id"`
 	NextID  *uuid.UUID `gorm:"type:uuid" json:"next_id"`
-	UserID  uuid.UUID  `gorm:"type:uuid" json:"user_id"`
 	Title   string     `gorm:"type:varchar(50)" json:"title"`
 	BgColor string     `gorm:"type:char(7)" json:"bg_color"`
 

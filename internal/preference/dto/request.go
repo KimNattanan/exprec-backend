@@ -1,5 +1,5 @@
 package dto
 
-type PatchPreferenceRequest struct {
+type PreferencePatchRequest struct {
 	Theme string `json:"theme" validate:"required"`
 }

@@ -7,6 +7,5 @@ import (
 
 type PreferenceUseCase interface {
 	FindByUserID(userID uuid.UUID) (*entities.Preference, error)
-	Save(preference *entities.Preference) error
 	Patch(userID uuid.UUID, preference *entities.Preference) (*entities.Preference, error)
 }

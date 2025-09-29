@@ -11,10 +11,10 @@ func ToPriceResponse(price *entities.Price) *PriceResponse {
 		nextID = ""
 	)
 	if price.PrevID != nil {
-		prevID = (*price.PrevID).String()
+		prevID = price.PrevID.String()
 	}
 	if price.NextID != nil {
-		nextID = (*price.NextID).String()
+		nextID = price.NextID.String()
 	}
 	return &PriceResponse{
 		UserID:  price.UserID.String(),

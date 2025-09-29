@@ -19,5 +19,12 @@ type User struct {
 
 func (u *User) BeforeCreate(d *gorm.DB) (err error) {
 	u.ID = uuid.New()
+	preference := &Preference{
+		UserID: u.ID,
+		Theme: "light",
+	}
+	if err = d.Create(preference).Error; err != nil {
+		return;
+	}
 	return
 }

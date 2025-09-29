@@ -15,6 +15,18 @@ import (
 	priceHandler "github.com/KimNattanan/exprec-backend/internal/price/handler/rest"
 	priceRepository "github.com/KimNattanan/exprec-backend/internal/price/repository"
 	priceUseCase "github.com/KimNattanan/exprec-backend/internal/price/usecase"
+
+	categoryHandler "github.com/KimNattanan/exprec-backend/internal/category/handler/rest"
+	categoryRepository "github.com/KimNattanan/exprec-backend/internal/category/repository"
+	categoryUseCase "github.com/KimNattanan/exprec-backend/internal/category/usecase"
+
+	recordHandler "github.com/KimNattanan/exprec-backend/internal/record/handler/rest"
+	recordRepository "github.com/KimNattanan/exprec-backend/internal/record/repository"
+	recordUseCase "github.com/KimNattanan/exprec-backend/internal/record/usecase"
+
+	preferenceHandler "github.com/KimNattanan/exprec-backend/internal/preference/handler/rest"
+	preferenceRepository "github.com/KimNattanan/exprec-backend/internal/preference/repository"
+	preferenceUseCase "github.com/KimNattanan/exprec-backend/internal/preference/usecase"
 )
 
 func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
@@ -33,6 +45,18 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 	priceService := priceUseCase.NewPriceService(priceRepo, txManager)
 	priceHandler := priceHandler.NewHttpPriceHandler(priceService)
 
+	categoryRepo := categoryRepository.NewGormCategoryRepository(db)
+	categoryService := categoryUseCase.NewCategoryService(categoryRepo, txManager)
+	categoryHandler := categoryHandler.NewHttpCategoryHandler(categoryService)
+
+	recordRepo := recordRepository.NewGormRecordRepository(db)
+	recordService := recordUseCase.NewRecordService(recordRepo)
+	recordHandler := recordHandler.NewHttpRecordHandler(recordService)
+
+	preferenceRepo := preferenceRepository.NewGormPreferenceRepository(db)
+	preferenceService := preferenceUseCase.NewPreferenceService(preferenceRepo)
+	preferenceHandler := preferenceHandler.NewHttpPreferenceHandler(preferenceService)
+
 	// === Public Routes ===
 
 	authGroup := api.Group("/auth")
@@ -49,4 +73,19 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 	priceGroup.Patch("/:id", priceHandler.Patch)
 	priceGroup.Delete("/:id", priceHandler.Delete)
 	priceGroup.Get("/user/:id", priceHandler.FindByUserID)
+
+	categoryGroup := api.Group("/categories")
+	categoryGroup.Post("/", categoryHandler.Save)
+	categoryGroup.Patch("/:id", categoryHandler.Patch)
+	categoryGroup.Delete("/:id", categoryHandler.Delete)
+	categoryGroup.Get("/user/:id", categoryHandler.FindByUserID)
+
+	recordGroup := api.Group("/records")
+	recordGroup.Post("/", recordHandler.Save)
+	recordGroup.Delete("/:id", recordHandler.Delete)
+	recordGroup.Get("/user/:id", recordHandler.FindByUserID)
+
+	preferenceGroup := api.Group("/preferences")
+	preferenceGroup.Patch("/:id", preferenceHandler.Patch)
+	preferenceGroup.Get("/:id", preferenceHandler.FindByUserID)
 }

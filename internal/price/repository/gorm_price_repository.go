@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/google/uuid"
@@ -66,7 +65,6 @@ func (r *GormPriceRepository) Delete(id uuid.UUID) error {
 	}
 	result := r.db.Delete(&price)
 	if result.Error != nil {
-		fmt.Println(result.Error, "!!")
 		return result.Error
 	}
 	if result.RowsAffected == 0 {

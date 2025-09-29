@@ -22,10 +22,6 @@ func (r *GormPreferenceRepository) FindByUserID(userID uuid.UUID) (*entities.Pre
 	return &preference, nil
 }
 
-func (r *GormPreferenceRepository) Save(preference *entities.Preference) error {
-	return r.db.Create(preference).Error
-}
-
 func (r *GormPreferenceRepository) Patch(userID uuid.UUID, preference *entities.Preference) error {
 	result := r.db.Model(&entities.Preference{}).Where("user_id = ?", userID).Updates(preference)
 	if result.Error != nil {

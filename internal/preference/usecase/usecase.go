@@ -18,10 +18,6 @@ func (s *PreferenceService) FindByUserID(userID uuid.UUID) (*entities.Preference
 	return s.repo.FindByUserID(userID)
 }
 
-func (s *PreferenceService) Save(preference *entities.Preference) error {
-	return s.repo.Save(preference)
-}
-
 func (s *PreferenceService) Patch(userID uuid.UUID, preference *entities.Preference) (*entities.Preference, error) {
 	if err := s.repo.Patch(userID, preference); err != nil {
 		return nil, err

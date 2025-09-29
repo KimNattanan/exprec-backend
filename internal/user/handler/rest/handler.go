@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"os"
 	"time"
 
@@ -146,7 +145,6 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   false,
 	})
-	fmt.Println(len(jwtToken))
 
 	return c.Redirect(os.Getenv("FRONTEND_URL"), fiber.StatusSeeOther)
 }

@@ -1,0 +1,56 @@
+package rest
+
+import (
+	"github.com/KimNattanan/exprec-backend/internal/record/dto"
+	"github.com/KimNattanan/exprec-backend/internal/record/usecase"
+	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/KimNattanan/exprec-backend/pkg/responses"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+)
+
+type HttpRecordHandler struct {
+	recordUseCase usecase.RecordUseCase
+}
+
+func NewHttpRecordHandler(useCase usecase.RecordUseCase) *HttpRecordHandler {
+	return &HttpRecordHandler{recordUseCase: useCase}
+}
+
+func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
+	req := new(dto.RecordSaveRequest)
+	if err := c.BodyParser(req); err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	record, err := dto.FromRecordSaveRequest(req)
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	if err := h.recordUseCase.Save(record); err != nil {
+		return responses.Error(c, err)
+	}
+	return c.Status(fiber.StatusCreated).JSON(dto.ToRecordResponse(record))
+}
+
+func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	if err := h.recordUseCase.Delete(id); err != nil {
+		return responses.Error(c, err)
+	}
+	return responses.Message(c, fiber.StatusOK, "record deleted")
+}
+
+func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
+	user_id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	records, err := h.recordUseCase.FindByUserID(user_id)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	return c.JSON(dto.ToRecordResponseList(records))
+}
