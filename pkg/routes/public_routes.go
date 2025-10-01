@@ -67,6 +67,7 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 
 	userGroup := api.Group("/users")
 	userGroup.Get("/:id", userHandler.FindUserByID)
+	userGroup.Delete("/:id", userHandler.Delete)
 
 	priceGroup := api.Group("/prices")
 	priceGroup.Post("/", priceHandler.Save)

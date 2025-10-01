@@ -17,21 +17,21 @@ type Category struct {
 	Next *Category `gorm:"foreignKey:NextID;references:ID"`
 }
 
-func (u *Category) BeforeCreate(d *gorm.DB) (err error) {
+func (u *Category) BeforeCreate(db *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
 }
 
-func (p *Category) BeforeDelete(d *gorm.DB) (err error) {
+func (p *Category) BeforeDelete(db *gorm.DB) (err error) {
 	if p.PrevID != nil {
-		if err := d.Model(&Category{}).
+		if err := db.Model(&Category{}).
 			Where("id = ?", p.PrevID).
 			Update("next_id", p.NextID).Error; err != nil {
 			return err
 		}
 	}
 	if p.NextID != nil {
-		if err := d.Model(&Category{}).
+		if err := db.Model(&Category{}).
 			Where("id = ?", p.NextID).
 			Update("prev_id", p.PrevID).Error; err != nil {
 			return err

@@ -7,11 +7,11 @@ import (
 
 func ToRecordResponse(record *entities.Record) *RecordResponse {
 	return &RecordResponse{
-		UserID:   record.UserID.String(),
-		ID:       record.ID.String(),
-		Category: record.Category,
-		Amount:   record.Amount,
-		Note:     record.Note,
+		UserID:    record.UserID.String(),
+		CreatedAt: record.CreatedAt,
+		Amount:    record.Amount,
+		Category:  record.Category,
+		Note:      record.Note,
 	}
 }
 
@@ -30,8 +30,8 @@ func FromRecordSaveRequest(record *RecordSaveRequest) (*entities.Record, error) 
 	}
 	return &entities.Record{
 		UserID:   userID,
-		Category: record.Category,
 		Amount:   record.Amount,
+		Category: record.Category,
 		Note:     record.Note,
 	}, nil
 }

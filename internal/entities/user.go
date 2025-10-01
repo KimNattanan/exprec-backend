@@ -17,14 +17,16 @@ type User struct {
 	Preference Preference `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
-func (u *User) BeforeCreate(d *gorm.DB) (err error) {
+func (u *User) BeforeCreate(db *gorm.DB) (err error) {
 	u.ID = uuid.New()
+	return
+}
+
+func (u *User) AfterCreate(db *gorm.DB) (err error) {
 	preference := &Preference{
 		UserID: u.ID,
-		Theme: "light",
+		Theme:  "light",
 	}
-	if err = d.Create(preference).Error; err != nil {
-		return;
-	}
+	err = db.Create(preference).Error
 	return
 }

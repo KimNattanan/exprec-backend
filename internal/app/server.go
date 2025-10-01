@@ -5,25 +5,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/pkg/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-func autoMigrateAll(db *gorm.DB) {
-	if err := db.AutoMigrate(
-		&entities.User{},
-		&entities.Preference{},
-		&entities.Price{},
-		&entities.Category{},
-		&entities.Record{},
-	); err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
-	}
-}
 
 func Start() {
 	if err := godotenv.Load(".env"); err != nil {
@@ -49,7 +36,15 @@ func Start() {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	autoMigrateAll(db)
+	// if err := db.AutoMigrate(
+	// 	&entities.User{},
+	// 	&entities.Preference{},
+	// 	&entities.Price{},
+	// 	&entities.Category{},
+	// 	&entities.Record{},
+	// ); err != nil {
+	// 	log.Fatalf("failed to migrate database: %v", err)
+	// }
 
 	routes.RegisterPublicRoutes(app, db)
 

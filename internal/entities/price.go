@@ -17,21 +17,21 @@ type Price struct {
 	Next *Price `gorm:"foreignKey:NextID;references:ID"`
 }
 
-func (u *Price) BeforeCreate(d *gorm.DB) (err error) {
+func (u *Price) BeforeCreate(db *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
 }
 
-func (p *Price) BeforeDelete(d *gorm.DB) (err error) {
+func (p *Price) BeforeDelete(db *gorm.DB) (err error) {
 	if p.PrevID != nil {
-		if err := d.Model(&Price{}).
+		if err := db.Model(&Price{}).
 			Where("id = ?", p.PrevID).
 			Update("next_id", p.NextID).Error; err != nil {
 			return err
 		}
 	}
 	if p.NextID != nil {
-		if err := d.Model(&Price{}).
+		if err := db.Model(&Price{}).
 			Where("id = ?", p.NextID).
 			Update("prev_id", p.PrevID).Error; err != nil {
 			return err

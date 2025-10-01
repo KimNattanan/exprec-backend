@@ -132,14 +132,6 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 	c.Cookie(&fiber.Cookie{
-		Name:     "loginToken2",
-		Value:    "test1234",
-		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: true,
-		Secure:   isProd,
-		SameSite: "Lax",
-	})
-	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
 		Expires:  time.Now(),
 		HTTPOnly: true,
@@ -159,4 +151,15 @@ func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 	return c.JSON(dto.ToUserResponse(user))
+}
+
+func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	if err := h.userUseCase.Delete(id); err != nil {
+		return responses.Error(c, err)
+	}
+	return responses.Message(c, fiber.StatusOK, "user deleted")
 }
