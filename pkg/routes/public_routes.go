@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/gorm"
 
 	"github.com/KimNattanan/exprec-backend/internal/transaction"
@@ -30,6 +31,11 @@ import (
 )
 
 func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*", // or specific domains
+		AllowMethods: "GET,POST,PATCH,DELETE",
+	}))
 
 	api := app.Group("/api/v2")
 
