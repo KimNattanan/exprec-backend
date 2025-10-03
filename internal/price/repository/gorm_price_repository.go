@@ -43,12 +43,43 @@ func (r *GormPriceRepository) FindByUserID(user_id uuid.UUID) ([]*entities.Price
 	return prices, nil
 }
 
-func (r *GormPriceRepository) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+func (r *GormPriceRepository) PatchValue(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
 	if !ok {
 		tx = r.db
 	}
-	result := tx.Model(&entities.Price{}).Where("id = ?", id).Updates(price)
+	result := tx.Model(&entities.Price{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"amount":   price.Amount,
+		"bg_color": price.BgColor,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+func (r *GormPriceRepository) PatchPrev(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+	tx, ok := ctx.Value("tx").(*gorm.DB)
+	if !ok {
+		tx = r.db
+	}
+	result := tx.Model(&entities.Price{}).Where("id = ?", id).Update("prev_id", prevID)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+func (r *GormPriceRepository) PatchNext(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+	tx, ok := ctx.Value("tx").(*gorm.DB)
+	if !ok {
+		tx = r.db
+	}
+	result := tx.Model(&entities.Price{}).Where("id = ?", id).Update("next_id", nextID)
 	if result.Error != nil {
 		return result.Error
 	}

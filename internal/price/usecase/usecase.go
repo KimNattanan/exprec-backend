@@ -27,12 +27,12 @@ func (s *PriceService) Save(ctx context.Context, price *entities.Price) error {
 			return err
 		}
 		if price.PrevID != nil {
-			if err := s.priceRepo.Patch(txCtx, *price.PrevID, &entities.Price{NextID: &price.ID}); err != nil {
+			if err := s.priceRepo.PatchNext(txCtx, *price.PrevID, &price.ID); err != nil {
 				return err
 			}
 		}
 		if price.NextID != nil {
-			if err := s.priceRepo.Patch(txCtx, *price.NextID, &entities.Price{PrevID: &price.ID}); err != nil {
+			if err := s.priceRepo.PatchPrev(txCtx, *price.NextID, &price.ID); err != nil {
 				return err
 			}
 		}
@@ -56,29 +56,29 @@ func (s *PriceService) Patch(ctx context.Context, id uuid.UUID, price *entities.
 		}
 		if priceOld.PrevID != price.PrevID {
 			if priceOld.PrevID != nil {
-				if err := s.priceRepo.Patch(txCtx, *priceOld.PrevID, &entities.Price{NextID: priceOld.NextID}); err != nil {
+				if err := s.priceRepo.PatchNext(txCtx, *priceOld.PrevID, priceOld.NextID); err != nil {
 					return err
 				}
 			}
 			if price.PrevID != nil {
-				if err := s.priceRepo.Patch(txCtx, *price.PrevID, &entities.Price{NextID: &id}); err != nil {
+				if err := s.priceRepo.PatchNext(txCtx, *price.PrevID, &id); err != nil {
 					return err
 				}
 			}
 		}
 		if priceOld.NextID != price.NextID {
 			if priceOld.NextID != nil {
-				if err := s.priceRepo.Patch(txCtx, *priceOld.NextID, &entities.Price{PrevID: priceOld.PrevID}); err != nil {
+				if err := s.priceRepo.PatchPrev(txCtx, *priceOld.NextID, priceOld.PrevID); err != nil {
 					return err
 				}
 			}
 			if price.NextID != nil {
-				if err := s.priceRepo.Patch(txCtx, *price.NextID, &entities.Price{PrevID: &id}); err != nil {
+				if err := s.priceRepo.PatchPrev(txCtx, *price.NextID, &id); err != nil {
 					return err
 				}
 			}
 		}
-		return s.priceRepo.Patch(txCtx, id, price)
+		return s.priceRepo.PatchValue(txCtx, id, price)
 	})
 	if err != nil {
 		return nil, err

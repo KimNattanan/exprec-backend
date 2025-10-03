@@ -8,6 +8,7 @@ import (
 func ToRecordResponse(record *entities.Record) *RecordResponse {
 	return &RecordResponse{
 		UserID:    record.UserID.String(),
+		ID:        record.ID.String(),
 		CreatedAt: record.CreatedAt,
 		Amount:    record.Amount,
 		Category:  record.Category,

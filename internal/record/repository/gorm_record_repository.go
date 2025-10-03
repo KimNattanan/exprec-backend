@@ -27,7 +27,7 @@ func (r *GormRecordRepository) FindByID(id uuid.UUID) (*entities.Record, error) 
 }
 func (r *GormRecordRepository) FindByUserID(user_id uuid.UUID) ([]*entities.Record, error) {
 	var recordValues []entities.Record
-	if err := r.db.Find(&recordValues, "user_id = ?", user_id).Error; err != nil {
+	if err := r.db.Where("user_id = ?", user_id).Order("created_at DESC").Find(&recordValues).Error; err != nil {
 		return nil, err
 	}
 	records := make([]*entities.Record, len(recordValues))

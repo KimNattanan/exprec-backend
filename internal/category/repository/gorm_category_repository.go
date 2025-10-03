@@ -43,12 +43,43 @@ func (r *GormCategoryRepository) FindByUserID(user_id uuid.UUID) ([]*entities.Ca
 	return categories, nil
 }
 
-func (r *GormCategoryRepository) Patch(ctx context.Context, id uuid.UUID, category *entities.Category) error {
+func (r *GormCategoryRepository) PatchValue(ctx context.Context, id uuid.UUID, category *entities.Category) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
 	if !ok {
 		tx = r.db
 	}
-	result := tx.Model(&entities.Category{}).Where("id = ?", id).Updates(category)
+	result := tx.Model(&entities.Category{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"title":    category.Title,
+		"bg_color": category.BgColor,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+func (r *GormCategoryRepository) PatchPrev(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+	tx, ok := ctx.Value("tx").(*gorm.DB)
+	if !ok {
+		tx = r.db
+	}
+	result := tx.Model(&entities.Category{}).Where("id = ?", id).Update("prev_id", prevID)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+func (r *GormCategoryRepository) PatchNext(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+	tx, ok := ctx.Value("tx").(*gorm.DB)
+	if !ok {
+		tx = r.db
+	}
+	result := tx.Model(&entities.Category{}).Where("id = ?", id).Update("next_id", nextID)
 	if result.Error != nil {
 		return result.Error
 	}

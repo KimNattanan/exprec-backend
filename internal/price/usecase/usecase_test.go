@@ -18,7 +18,9 @@ type mockPriceRepo struct {
 	save         func(ctx context.Context, price *entities.Price) error
 	findByID     func(id uuid.UUID) (*entities.Price, error)
 	findByUserID func(user_id uuid.UUID) ([]*entities.Price, error)
-	patch        func(ctx context.Context, id uuid.UUID, price *entities.Price) error
+	patchValue   func(ctx context.Context, id uuid.UUID, price *entities.Price) error
+	patchPrev    func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error
+	patchNext    func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error
 	delete       func(id uuid.UUID) error
 }
 
@@ -31,8 +33,14 @@ func (m *mockPriceRepo) FindByID(id uuid.UUID) (*entities.Price, error) {
 func (m *mockPriceRepo) FindByUserID(user_id uuid.UUID) ([]*entities.Price, error) {
 	return m.findByUserID(user_id)
 }
-func (m *mockPriceRepo) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) error {
-	return m.patch(ctx, id, price)
+func (m *mockPriceRepo) PatchValue(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+	return m.patchValue(ctx, id, price)
+}
+func (m *mockPriceRepo) PatchPrev(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+	return m.patchPrev(ctx, id, prevID)
+}
+func (m *mockPriceRepo) PatchNext(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+	return m.patchNext(ctx, id, nextID)
 }
 func (m *mockPriceRepo) Delete(id uuid.UUID) error {
 	return m.delete(id)
@@ -60,7 +68,13 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patch: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+				return gorm.ErrRecordNotFound
+			},
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				return gorm.ErrRecordNotFound
+			},
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
 				return gorm.ErrRecordNotFound
 			},
 		}
@@ -94,10 +108,22 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patch: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 				if id == l.ID {
-					l.PrevID = price.PrevID
-					l.NextID = price.NextID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				if id == l.ID {
+					l.PrevID = prevID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+				if id == l.ID {
+					l.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
@@ -135,10 +161,22 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patch: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 				if id == r.ID {
-					r.PrevID = price.PrevID
-					r.NextID = price.NextID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				if id == r.ID {
+					r.PrevID = prevID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+				if id == r.ID {
+					r.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
@@ -181,15 +219,33 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patch: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 				switch id {
 				case l.ID:
-					l.PrevID = price.PrevID
-					l.NextID = price.NextID
 					return nil
 				case r.ID:
-					r.PrevID = price.PrevID
-					r.NextID = price.NextID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				switch id {
+				case l.ID:
+					l.PrevID = prevID
+					return nil
+				case r.ID:
+					r.PrevID = prevID
+					return nil
+				}
+				return gorm.ErrRecordNotFound
+			},
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+				switch id {
+				case l.ID:
+					l.NextID = nextID
+					return nil
+				case r.ID:
+					r.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
