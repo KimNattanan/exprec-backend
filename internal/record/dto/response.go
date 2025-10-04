@@ -5,10 +5,11 @@ import (
 )
 
 type RecordResponse struct {
-	UserID    string    `json:"user_id"`
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Category  string    `json:"category"`
-	Amount    float32   `json:"amount"`
-	Note      string    `json:"note"`
+	UserID          string    `json:"user_id"`
+	ID              string    `json:"id"`
+	CreatedAt       time.Time `json:"created_at"`
+	Amount          float32   `json:"amount"`
+	Category        string    `json:"category"`
+	CategoryBgColor string    `json:"category_bg_color"`
+	Note            string    `json:"note"`
 }

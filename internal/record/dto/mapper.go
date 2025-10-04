@@ -7,12 +7,13 @@ import (
 
 func ToRecordResponse(record *entities.Record) *RecordResponse {
 	return &RecordResponse{
-		UserID:    record.UserID.String(),
-		ID:        record.ID.String(),
-		CreatedAt: record.CreatedAt,
-		Amount:    record.Amount,
-		Category:  record.Category,
-		Note:      record.Note,
+		UserID:          record.UserID.String(),
+		ID:              record.ID.String(),
+		CreatedAt:       record.CreatedAt,
+		Amount:          record.Amount,
+		Category:        record.Category,
+		CategoryBgColor: record.CategoryBgColor,
+		Note:            record.Note,
 	}
 }
 
@@ -30,9 +31,10 @@ func FromRecordSaveRequest(record *RecordSaveRequest) (*entities.Record, error) 
 		return nil, err
 	}
 	return &entities.Record{
-		UserID:   userID,
-		Amount:   record.Amount,
-		Category: record.Category,
-		Note:     record.Note,
+		UserID:          userID,
+		Amount:          record.Amount,
+		Category:        record.Category,
+		CategoryBgColor: record.CategoryBgColor,
+		Note:            record.Note,
 	}, nil
 }
