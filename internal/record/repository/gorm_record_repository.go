@@ -25,16 +25,20 @@ func (r *GormRecordRepository) FindByID(id uuid.UUID) (*entities.Record, error) 
 	}
 	return &record, nil
 }
-func (r *GormRecordRepository) FindByUserID(user_id uuid.UUID) ([]*entities.Record, error) {
+func (r *GormRecordRepository) FindByUserID(user_id uuid.UUID, offset, limit int) ([]*entities.Record, int64, error) {
 	var recordValues []entities.Record
-	if err := r.db.Where("user_id = ?", user_id).Order("created_at DESC").Find(&recordValues).Error; err != nil {
-		return nil, err
+	if err := r.db.Where("user_id = ?", user_id).Order("created_at DESC").Offset(offset).Limit(limit).Find(&recordValues).Error; err != nil {
+		return nil, 0, err
+	}
+	var totalRecords int64
+	if err := r.db.Model(&entities.Record{}).Where("user_id = ?", user_id).Count(&totalRecords).Error; err != nil {
+		return nil, 0, err
 	}
 	records := make([]*entities.Record, len(recordValues))
 	for i := range records {
 		records[i] = &recordValues[i]
 	}
-	return records, nil
+	return records, totalRecords, nil
 }
 
 func (r *GormRecordRepository) Delete(id uuid.UUID) error {

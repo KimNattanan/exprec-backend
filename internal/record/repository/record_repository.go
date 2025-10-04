@@ -8,6 +8,6 @@ import (
 type RecordRepository interface {
 	Save(record *entities.Record) error
 	FindByID(id uuid.UUID) (*entities.Record, error)
-	FindByUserID(user_id uuid.UUID) ([]*entities.Record, error)
+	FindByUserID(user_id uuid.UUID, offset, limit int) ([]*entities.Record, int64, error)
 	Delete(id uuid.UUID) error
 }

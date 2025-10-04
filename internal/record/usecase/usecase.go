@@ -22,8 +22,8 @@ func (s *RecordService) FindByID(id uuid.UUID) (*entities.Record, error) {
 	return s.recordRepo.FindByID(id)
 }
 
-func (s *RecordService) FindByUserID(user_id uuid.UUID) ([]*entities.Record, error) {
-	return s.recordRepo.FindByUserID(user_id)
+func (s *RecordService) FindByUserID(user_id uuid.UUID, offset, limit int) ([]*entities.Record, int64, error) {
+	return s.recordRepo.FindByUserID(user_id, offset, limit)
 }
 
 func (s *RecordService) Delete(id uuid.UUID) error {

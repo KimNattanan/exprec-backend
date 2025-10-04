@@ -1,6 +1,9 @@
 package rest
 
 import (
+	"math"
+	"strconv"
+
 	"github.com/KimNattanan/exprec-backend/internal/record/dto"
 	"github.com/KimNattanan/exprec-backend/internal/record/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
@@ -48,9 +51,31 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	records, err := h.recordUseCase.FindByUserID(user_id)
+	var (
+		pageStr  = c.Query("page")
+		limitStr = c.Query("limit")
+		page     = 1
+		limit    = 3
+	)
+	if x, err := strconv.Atoi(pageStr); err == nil {
+		page = x
+	}
+	if x, err := strconv.Atoi(limitStr); err == nil {
+		limit = x
+	}
+	offset := (page - 1) * limit
+
+	records, totalRecords, err := h.recordUseCase.FindByUserID(user_id, offset, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToRecordResponseList(records))
+	return c.JSON(fiber.Map{
+		"data": dto.ToRecordResponseList(records),
+		"pagination": fiber.Map{
+			"totalRecords": totalRecords,
+			"totalPages":   int(math.Ceil(float64(totalRecords) / float64(limit))),
+			"currentPage":  page,
+			"limit":        limit,
+		},
+	})
 }
