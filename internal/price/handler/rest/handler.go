@@ -26,6 +26,11 @@ func (h *HttpPriceHandler) Save(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	price.UserID = user_id
 	if err := h.priceUseCase.Save(c.Context(), price); err != nil {
 		return responses.Error(c, err)
 	}
@@ -64,7 +69,7 @@ func (h *HttpPriceHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpPriceHandler) FindByUserID(c *fiber.Ctx) error {
-	user_id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}

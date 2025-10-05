@@ -4,7 +4,6 @@ import "github.com/KimNattanan/exprec-backend/internal/entities"
 
 func ToUserResponse(user *entities.User) *UserResponse {
 	return &UserResponse{
-		ID:    user.ID,
 		Email: user.Email,
 		Name:  user.Name,
 	}

@@ -17,7 +17,6 @@ func ToCategoryResponse(category *entities.Category) *CategoryResponse {
 		nextID = category.NextID.String()
 	}
 	return &CategoryResponse{
-		UserID:  category.UserID.String(),
 		ID:      category.ID.String(),
 		PrevID:  prevID,
 		NextID:  nextID,
@@ -37,13 +36,11 @@ func ToCategoryResponseList(categories []*entities.Category) []*CategoryResponse
 func FromCategorySaveRequest(category *CategorySaveRequest) (*entities.Category, error) {
 	var (
 		err       error
-		userID    uuid.UUID
 		prevID    uuid.UUID
 		prevIDPtr *uuid.UUID
 		nextID    uuid.UUID
 		nextIDPtr *uuid.UUID
 	)
-	userID, err = uuid.Parse(category.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +59,6 @@ func FromCategorySaveRequest(category *CategorySaveRequest) (*entities.Category,
 		nextIDPtr = &nextID
 	}
 	return &entities.Category{
-		UserID:  userID,
 		PrevID:  prevIDPtr,
 		NextID:  nextIDPtr,
 		Title:   category.Title,

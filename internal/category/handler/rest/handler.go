@@ -26,6 +26,11 @@ func (h *HttpCategoryHandler) Save(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	category.UserID = user_id
 	if err := h.categoryUseCase.Save(c.Context(), category); err != nil {
 		return responses.Error(c, err)
 	}
@@ -64,7 +69,7 @@ func (h *HttpCategoryHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpCategoryHandler) FindByUserID(c *fiber.Ctx) error {
-	user_id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}

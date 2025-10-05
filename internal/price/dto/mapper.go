@@ -17,7 +17,6 @@ func ToPriceResponse(price *entities.Price) *PriceResponse {
 		nextID = price.NextID.String()
 	}
 	return &PriceResponse{
-		UserID:  price.UserID.String(),
 		ID:      price.ID.String(),
 		PrevID:  prevID,
 		NextID:  nextID,
@@ -37,13 +36,11 @@ func ToPriceResponseList(prices []*entities.Price) []*PriceResponse {
 func FromPriceSaveRequest(price *PriceSaveRequest) (*entities.Price, error) {
 	var (
 		err       error
-		userID    uuid.UUID
 		prevID    uuid.UUID
 		prevIDPtr *uuid.UUID
 		nextID    uuid.UUID
 		nextIDPtr *uuid.UUID
 	)
-	userID, err = uuid.Parse(price.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +59,6 @@ func FromPriceSaveRequest(price *PriceSaveRequest) (*entities.Price, error) {
 		nextIDPtr = &nextID
 	}
 	return &entities.Price{
-		UserID:  userID,
 		PrevID:  prevIDPtr,
 		NextID:  nextIDPtr,
 		Amount:  price.Amount,

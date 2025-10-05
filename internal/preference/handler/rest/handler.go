@@ -18,7 +18,7 @@ func NewHttpPreferenceHandler(useCase usecase.PreferenceUseCase) *HttpPreference
 }
 
 func (h *HttpPreferenceHandler) Patch(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
@@ -26,7 +26,7 @@ func (h *HttpPreferenceHandler) Patch(c *fiber.Ctx) error {
 	if err := c.BodyParser(req); err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	preference, err := h.preferenceUseCase.Patch(id, dto.FromPreferencePatchRequest(req))
+	preference, err := h.preferenceUseCase.Patch(user_id, dto.FromPreferencePatchRequest(req))
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -34,7 +34,7 @@ func (h *HttpPreferenceHandler) Patch(c *fiber.Ctx) error {
 }
 
 func (h *HttpPreferenceHandler) FindByUserID(c *fiber.Ctx) error {
-	user_id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}

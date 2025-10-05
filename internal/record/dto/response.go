@@ -5,7 +5,6 @@ import (
 )
 
 type RecordResponse struct {
-	UserID          string    `json:"user_id"`
 	ID              string    `json:"id"`
 	CreatedAt       time.Time `json:"created_at"`
 	Amount          float32   `json:"amount"`

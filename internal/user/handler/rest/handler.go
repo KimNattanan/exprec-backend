@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/KimNattanan/exprec-backend/internal/user/dto"
 	"github.com/KimNattanan/exprec-backend/internal/user/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
@@ -33,45 +32,6 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 			Endpoint:     google.Endpoint,
 		},
 	}
-}
-
-func (h *HttpUserHandler) Register(c *fiber.Ctx) error {
-	req := new(dto.RegisterRequest)
-	if err := c.BodyParser(req); err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
-	user := dto.ToUserEntity(req)
-	if err := h.userUseCase.Register(user); err != nil {
-		return responses.Error(c, err)
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(dto.ToUserResponse(user))
-}
-
-func (h *HttpUserHandler) Login(c *fiber.Ctx) error {
-	req := new(dto.LoginRequest)
-	if err := c.BodyParser(req); err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
-	token, user, err := h.userUseCase.Login(req.Email, req.Password)
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "invalid email or password")
-	}
-
-	c.Cookie(&fiber.Cookie{
-		Name:     "loginToken",
-		Value:    token,
-		Path:     "/",
-		Secure:   true,
-		HTTPOnly: true,
-		SameSite: fiber.CookieSameSiteStrictMode,
-	})
-
-	return c.JSON(fiber.Map{
-		"user": dto.ToUserResponse(user),
-	})
 }
 
 func (h *HttpUserHandler) GoogleLogin(c *fiber.Ctx) error {
@@ -141,24 +101,12 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	return c.Redirect(os.Getenv("FRONTEND_URL"), fiber.StatusSeeOther)
 }
 
-func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-	user, err := h.userUseCase.FindByID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToUserResponse(user))
-}
-
 func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	if err := h.userUseCase.Delete(id); err != nil {
+	if err := h.userUseCase.Delete(user_id); err != nil {
 		return responses.Error(c, err)
 	}
 	return responses.Message(c, fiber.StatusOK, "user deleted")

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/KimNattanan/exprec-backend/pkg/middleware"
 	"github.com/KimNattanan/exprec-backend/pkg/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -36,17 +37,9 @@ func Start() {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	// if err := db.AutoMigrate(
-	// 	&entities.User{},
-	// 	&entities.Preference{},
-	// 	&entities.Price{},
-	// 	&entities.Category{},
-	// 	&entities.Record{},
-	// ); err != nil {
-	// 	log.Fatalf("failed to migrate database: %v", err)
-	// }
-
+	middleware.FiberMiddleware(app)
 	routes.RegisterPublicRoutes(app, db)
+	routes.RegisterPrivateRoutes(app, db)
 
 	app.Listen(":8000")
 }

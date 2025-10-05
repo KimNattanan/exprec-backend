@@ -29,6 +29,11 @@ func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	record.UserID = user_id
 	if err := h.recordUseCase.Save(record); err != nil {
 		return responses.Error(c, err)
 	}
@@ -47,7 +52,7 @@ func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
-	user_id, err := uuid.Parse(c.Params("id"))
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}

@@ -2,12 +2,10 @@ package dto
 
 import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
-	"github.com/google/uuid"
 )
 
 func ToRecordResponse(record *entities.Record) *RecordResponse {
 	return &RecordResponse{
-		UserID:          record.UserID.String(),
 		ID:              record.ID.String(),
 		CreatedAt:       record.CreatedAt,
 		Amount:          record.Amount,
@@ -26,12 +24,7 @@ func ToRecordResponseList(records []*entities.Record) []*RecordResponse {
 }
 
 func FromRecordSaveRequest(record *RecordSaveRequest) (*entities.Record, error) {
-	userID, err := uuid.Parse(record.UserID)
-	if err != nil {
-		return nil, err
-	}
 	return &entities.Record{
-		UserID:          userID,
 		Amount:          record.Amount,
 		Category:        record.Category,
 		CategoryBgColor: record.CategoryBgColor,
