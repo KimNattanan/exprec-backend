@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/internal/record/repository"
+	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/google/uuid"
 )
 
@@ -15,6 +16,13 @@ func NewRecordService(recordRepo repository.RecordRepository) RecordUseCase {
 }
 
 func (s *RecordService) Save(record *entities.Record) error {
+	cnt, err := s.recordRepo.CountByUserID(record.UserID)
+	if err != nil {
+		return err
+	}
+	if cnt >= 100 {
+		return appError.ErrLimitExceeded
+	}
 	return s.recordRepo.Save(record)
 }
 

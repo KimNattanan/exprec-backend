@@ -18,6 +18,14 @@ func (r *GormRecordRepository) Save(record *entities.Record) error {
 	return r.db.Create(record).Error
 }
 
+func (r *GormRecordRepository) CountByUserID(user_id uuid.UUID) (int64, error) {
+	var cnt int64
+	if err := r.db.Model(&entities.Record{}).Where("user_id = ?", user_id).Count(&cnt).Error; err != nil {
+		return 0, err
+	}
+	return cnt, nil
+}
+
 func (r *GormRecordRepository) FindByID(id uuid.UUID) (*entities.Record, error) {
 	var record entities.Record
 	if err := r.db.First(&record, "id = ?", id).Error; err != nil {
