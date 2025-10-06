@@ -20,7 +20,7 @@ func (s *RecordService) Save(record *entities.Record) error {
 	if err != nil {
 		return err
 	}
-	if cnt >= 100 {
+	if cnt >= 30 {
 		return appError.ErrLimitExceeded
 	}
 	return s.recordRepo.Save(record)

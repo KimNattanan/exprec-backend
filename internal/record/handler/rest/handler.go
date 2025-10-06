@@ -60,7 +60,7 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 		pageStr  = c.Query("page")
 		limitStr = c.Query("limit")
 		page     = 1
-		limit    = 3
+		limit    = 5
 	)
 	if x, err := strconv.Atoi(pageStr); err == nil {
 		page = x
