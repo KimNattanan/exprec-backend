@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/gorm"
 
 	"github.com/KimNattanan/exprec-backend/internal/transaction"
@@ -32,13 +31,6 @@ import (
 )
 
 func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
-
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: os.Getenv("FRONTEND_URL"),
-		AllowMethods: "GET,POST,PATCH,DELETE",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-	}))
-
 	api := app.Group("/api/v2", middleware.AuthRequired)
 
 	// === Dependency Wiring ===
@@ -66,6 +58,9 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	preferenceHandler := preferenceHandler.NewHttpPreferenceHandler(preferenceService)
 
 	// === Public Routes ===
+
+	api.Get("/me", userHandler.GetUser)
+	api.Get("/me/logout", userHandler.Logout)
 
 	userGroup := api.Group("/users")
 	userGroup.Delete("/", userHandler.Delete)

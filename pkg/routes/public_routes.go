@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/gorm"
 
 	userHandler "github.com/KimNattanan/exprec-backend/internal/user/handler/rest"
@@ -13,13 +12,6 @@ import (
 )
 
 func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
-
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: os.Getenv("FRONTEND_URL"),
-		AllowMethods: "GET,POST,PATCH,DELETE",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-	}))
-
 	api := app.Group("/api/v2")
 
 	// === Dependency Wiring ===

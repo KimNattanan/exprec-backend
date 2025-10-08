@@ -112,9 +112,9 @@ func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{},
 	user.Password = ""
 
 	claims := jwt.MapClaims{
-		"user_id": user.ID,
+		"user_id":   user.ID,
 		"user_info": dto.ToUserResponse(user),
-		"exp":  time.Now().Add(time.Hour * 72).Unix(), // 3 days
+		"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwtSecret := os.Getenv("JWT_SECRET")

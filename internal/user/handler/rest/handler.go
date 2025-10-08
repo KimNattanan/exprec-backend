@@ -4,9 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"os"
 	"time"
 
+	"github.com/KimNattanan/exprec-backend/internal/user/dto"
 	"github.com/KimNattanan/exprec-backend/internal/user/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
@@ -32,6 +34,22 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 			Endpoint:     google.Endpoint,
 		},
 	}
+}
+
+func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
+	log.Println("Getting user...")
+	user_id, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+
+	user, err := h.userUseCase.FindByID(user_id)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	log.Println("Getting user success user:", user)
+
+	return c.JSON(dto.ToUserResponse(user))
 }
 
 func (h *HttpUserHandler) GoogleLogin(c *fiber.Ctx) error {
@@ -61,6 +79,7 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 
 	token, err := h.googleOauthConfig.Exchange(c.Context(), code)
 	if err != nil {
+		log.Printf("failed to exchange token: %v\n", err)
 		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "failed to exchange token")
 	}
 
@@ -84,21 +103,32 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	isProd := os.Getenv("ENV") == "production"
 
 	c.Cookie(&fiber.Cookie{
-		Name:     "loginToken",
-		Value:    jwtToken,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: true,
-		Secure:   isProd,
-		SameSite: "Lax",
-	})
-	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
 		Expires:  time.Now(),
 		HTTPOnly: true,
 		Secure:   false,
 	})
+	c.Cookie(&fiber.Cookie{
+		Name:     "loginToken",
+		Value:    jwtToken,
+		Expires:  time.Now().Add(14 * 24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   isProd,
+		SameSite: "None",
+		Path:     "/",
+	})
 
-	return c.Redirect(os.Getenv("FRONTEND_URL"), fiber.StatusSeeOther)
+	return c.Redirect(os.Getenv("FRONTEND_OAUTH_REDIRECT_URL"), fiber.StatusSeeOther)
+}
+
+func (h *HttpUserHandler) Logout(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "loginToken",
+		Value:    "",
+		Expires:  time.Now(),
+		HTTPOnly: true,
+	})
+	return responses.Message(c, fiber.StatusOK, "logged out successfully")
 }
 
 func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {
