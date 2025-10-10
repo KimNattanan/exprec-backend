@@ -41,6 +41,10 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	userService := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(userService, os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"))
 
+	preferenceRepo := preferenceRepository.NewGormPreferenceRepository(db)
+	preferenceService := preferenceUseCase.NewPreferenceService(preferenceRepo)
+	preferenceHandler := preferenceHandler.NewHttpPreferenceHandler(preferenceService)
+
 	priceRepo := priceRepository.NewGormPriceRepository(db)
 	priceService := priceUseCase.NewPriceService(priceRepo, txManager)
 	priceHandler := priceHandler.NewHttpPriceHandler(priceService)
@@ -53,10 +57,6 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	recordService := recordUseCase.NewRecordService(recordRepo)
 	recordHandler := recordHandler.NewHttpRecordHandler(recordService)
 
-	preferenceRepo := preferenceRepository.NewGormPreferenceRepository(db)
-	preferenceService := preferenceUseCase.NewPreferenceService(preferenceRepo)
-	preferenceHandler := preferenceHandler.NewHttpPreferenceHandler(preferenceService)
-
 	// === Public Routes ===
 
 	api.Get("/me", userHandler.GetUser)
@@ -64,6 +64,10 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 
 	userGroup := api.Group("/users")
 	userGroup.Delete("/", userHandler.Delete)
+
+	preferenceGroup := api.Group("/preferences")
+	preferenceGroup.Patch("/", preferenceHandler.Patch)
+	preferenceGroup.Get("/", preferenceHandler.FindByUserID)
 
 	priceGroup := api.Group("/prices")
 	priceGroup.Post("/", priceHandler.Save)
@@ -81,8 +85,6 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	recordGroup.Post("/", recordHandler.Save)
 	recordGroup.Delete("/:id", recordHandler.Delete)
 	recordGroup.Get("/", recordHandler.FindByUserID)
+	recordGroup.Get("/dashboard-data", recordHandler.GetUserDashboardData)
 
-	preferenceGroup := api.Group("/preferences")
-	preferenceGroup.Patch("/", preferenceHandler.Patch)
-	preferenceGroup.Get("/", preferenceHandler.FindByUserID)
 }

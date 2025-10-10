@@ -6,7 +6,6 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/internal/price/repository"
 	"github.com/KimNattanan/exprec-backend/internal/transaction"
-	"github.com/google/uuid"
 )
 
 type PriceService struct {
@@ -27,12 +26,12 @@ func (s *PriceService) Save(ctx context.Context, price *entities.Price) error {
 			return err
 		}
 		if price.PrevID != nil {
-			if err := s.priceRepo.PatchNext(txCtx, *price.PrevID, &price.ID); err != nil {
+			if err := s.priceRepo.PatchNext(txCtx, price.PrevID.String(), price.ID.String()); err != nil {
 				return err
 			}
 		}
 		if price.NextID != nil {
-			if err := s.priceRepo.PatchPrev(txCtx, *price.NextID, &price.ID); err != nil {
+			if err := s.priceRepo.PatchPrev(txCtx, price.NextID.String(), price.ID.String()); err != nil {
 				return err
 			}
 		}
@@ -40,15 +39,15 @@ func (s *PriceService) Save(ctx context.Context, price *entities.Price) error {
 	})
 }
 
-func (s *PriceService) FindByID(id uuid.UUID) (*entities.Price, error) {
+func (s *PriceService) FindByID(id string) (*entities.Price, error) {
 	return s.priceRepo.FindByID(id)
 }
 
-func (s *PriceService) FindByUserID(user_id uuid.UUID) ([]*entities.Price, error) {
-	return s.priceRepo.FindByUserID(user_id)
+func (s *PriceService) FindByUserID(userID string) ([]*entities.Price, error) {
+	return s.priceRepo.FindByUserID(userID)
 }
 
-func (s *PriceService) Patch(ctx context.Context, id uuid.UUID, price *entities.Price) (*entities.Price, error) {
+func (s *PriceService) Patch(ctx context.Context, id string, price *entities.Price) (*entities.Price, error) {
 	err := s.txManager.Do(ctx, func(txCtx context.Context) error {
 		priceOld, err := s.priceRepo.FindByID(id)
 		if err != nil {
@@ -56,24 +55,24 @@ func (s *PriceService) Patch(ctx context.Context, id uuid.UUID, price *entities.
 		}
 		if priceOld.PrevID != price.PrevID {
 			if priceOld.PrevID != nil {
-				if err := s.priceRepo.PatchNext(txCtx, *priceOld.PrevID, priceOld.NextID); err != nil {
+				if err := s.priceRepo.PatchNext(txCtx, priceOld.PrevID.String(), priceOld.NextID.String()); err != nil {
 					return err
 				}
 			}
 			if price.PrevID != nil {
-				if err := s.priceRepo.PatchNext(txCtx, *price.PrevID, &id); err != nil {
+				if err := s.priceRepo.PatchNext(txCtx, price.PrevID.String(), id); err != nil {
 					return err
 				}
 			}
 		}
 		if priceOld.NextID != price.NextID {
 			if priceOld.NextID != nil {
-				if err := s.priceRepo.PatchPrev(txCtx, *priceOld.NextID, priceOld.PrevID); err != nil {
+				if err := s.priceRepo.PatchPrev(txCtx, priceOld.NextID.String(), priceOld.PrevID.String()); err != nil {
 					return err
 				}
 			}
 			if price.NextID != nil {
-				if err := s.priceRepo.PatchPrev(txCtx, *price.NextID, &id); err != nil {
+				if err := s.priceRepo.PatchPrev(txCtx, price.NextID.String(), id); err != nil {
 					return err
 				}
 			}
@@ -86,6 +85,6 @@ func (s *PriceService) Patch(ctx context.Context, id uuid.UUID, price *entities.
 	return s.priceRepo.FindByID(id)
 }
 
-func (s *PriceService) Delete(id uuid.UUID) error {
+func (s *PriceService) Delete(id string) error {
 	return s.priceRepo.Delete(id)
 }

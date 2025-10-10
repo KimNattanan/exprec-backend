@@ -14,17 +14,17 @@ import (
 
 type mockUserRepo struct {
 	findByEmailFunc func(email string) (*entities.User, error)
-	findByIDFunc    func(id uuid.UUID) (*entities.User, error)
+	findByIDFunc    func(id string) (*entities.User, error)
 	findAllFunc     func() ([]*entities.User, error)
 	saveFunc        func(user *entities.User) error
-	patchFunc       func(id uuid.UUID, user *entities.User) error
-	deleteFunc      func(id uuid.UUID) error
+	patchFunc       func(id string, user *entities.User) error
+	deleteFunc      func(id string) error
 }
 
 func (m *mockUserRepo) FindByEmail(email string) (*entities.User, error) {
 	return m.findByEmailFunc(email)
 }
-func (m *mockUserRepo) FindByID(id uuid.UUID) (*entities.User, error) {
+func (m *mockUserRepo) FindByID(id string) (*entities.User, error) {
 	return m.findByIDFunc(id)
 }
 func (m *mockUserRepo) FindAll() ([]*entities.User, error) {
@@ -33,10 +33,10 @@ func (m *mockUserRepo) FindAll() ([]*entities.User, error) {
 func (m *mockUserRepo) Save(user *entities.User) error {
 	return m.saveFunc(user)
 }
-func (m *mockUserRepo) Patch(id uuid.UUID, user *entities.User) error {
+func (m *mockUserRepo) Patch(id string, user *entities.User) error {
 	return m.patchFunc(id, user)
 }
-func (m *mockUserRepo) Delete(id uuid.UUID) error {
+func (m *mockUserRepo) Delete(id string) error {
 	return m.deleteFunc(id)
 }
 
@@ -191,26 +191,26 @@ func TestFindByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		user := &entities.User{ID: uuid.New(), Email: "john@example.com"}
 		repo := &mockUserRepo{
-			findByIDFunc: func(id uuid.UUID) (*entities.User, error) {
+			findByIDFunc: func(id string) (*entities.User, error) {
 				return user, nil
 			},
 		}
 		service := NewUserService(repo)
 
-		result, err := service.FindByID(user.ID)
+		result, err := service.FindByID(user.ID.String())
 		assert.NoError(t, err)
 		assert.Equal(t, user, result)
 	})
 	t.Run("not found", func(t *testing.T) {
 		id := uuid.New()
 		repo := &mockUserRepo{
-			findByIDFunc: func(uid uuid.UUID) (*entities.User, error) {
+			findByIDFunc: func(uid string) (*entities.User, error) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
 		service := NewUserService(repo)
 
-		result, err := service.FindByID(id)
+		result, err := service.FindByID(id.String())
 		assert.ErrorIs(t, err, apperror.ErrRecordNotFound)
 		assert.Nil(t, result)
 	})
@@ -250,16 +250,16 @@ func TestPatch(t *testing.T) {
 		id := uuid.New()
 		user := &entities.User{ID: id, Email: "john@example.com"}
 		repo := &mockUserRepo{
-			patchFunc: func(uid uuid.UUID, u *entities.User) error {
+			patchFunc: func(uid string, u *entities.User) error {
 				return nil
 			},
-			findByIDFunc: func(uid uuid.UUID) (*entities.User, error) {
+			findByIDFunc: func(uid string) (*entities.User, error) {
 				return user, nil
 			},
 		}
 		service := NewUserService(repo)
 
-		result, err := service.Patch(id, user)
+		result, err := service.Patch(id.String(), user)
 		assert.NoError(t, err)
 		assert.Equal(t, user, result)
 	})
@@ -267,13 +267,13 @@ func TestPatch(t *testing.T) {
 		id := uuid.New()
 		user := &entities.User{Email: "john@example.com"}
 		repo := &mockUserRepo{
-			patchFunc: func(uid uuid.UUID, u *entities.User) error {
+			patchFunc: func(uid string, u *entities.User) error {
 				return errors.New("patch failed")
 			},
 		}
 		service := NewUserService(repo)
 
-		result, err := service.Patch(id, user)
+		result, err := service.Patch(id.String(), user)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -282,16 +282,16 @@ func TestPatch(t *testing.T) {
 		id := uuid.New()
 		user := &entities.User{Email: "john@example.com"}
 		repo := &mockUserRepo{
-			patchFunc: func(uid uuid.UUID, u *entities.User) error {
+			patchFunc: func(uid string, u *entities.User) error {
 				return nil
 			},
-			findByIDFunc: func(uid uuid.UUID) (*entities.User, error) {
+			findByIDFunc: func(uid string) (*entities.User, error) {
 				return nil, errors.New("find failed")
 			},
 		}
 		service := NewUserService(repo)
 
-		result, err := service.Patch(id, user)
+		result, err := service.Patch(id.String(), user)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -300,25 +300,25 @@ func TestDelete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		id := uuid.New()
 		repo := &mockUserRepo{
-			deleteFunc: func(uid uuid.UUID) error {
+			deleteFunc: func(uid string) error {
 				return nil
 			},
 		}
 		service := NewUserService(repo)
 
-		err := service.Delete(id)
+		err := service.Delete(id.String())
 		assert.NoError(t, err)
 	})
 	t.Run("delete fails", func(t *testing.T) {
 		id := uuid.New()
 		repo := &mockUserRepo{
-			deleteFunc: func(uid uuid.UUID) error {
+			deleteFunc: func(uid string) error {
 				return errors.New("delete failed")
 			},
 		}
 		service := NewUserService(repo)
 
-		err := service.Delete(id)
+		err := service.Delete(id.String())
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "delete failed")
 	})

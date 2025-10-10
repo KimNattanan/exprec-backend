@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"fmt"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/KimNattanan/exprec-backend/internal/record/dto"
 	"github.com/KimNattanan/exprec-backend/internal/record/usecase"
@@ -29,11 +31,11 @@ func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	user_id, err := uuid.Parse(c.Locals("user_id").(string))
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	record.UserID = user_id
+	record.UserID = userID
 	if err := h.recordUseCase.Save(record); err != nil {
 		return responses.Error(c, err)
 	}
@@ -41,10 +43,7 @@ func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	id := c.Params("id")
 	if err := h.recordUseCase.Delete(id); err != nil {
 		return responses.Error(c, err)
 	}
@@ -52,8 +51,8 @@ func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
-	user_id, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
+	userID := c.Locals("user_id")
+	if userID == nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 	var (
@@ -70,7 +69,7 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
-	records, totalRecords, err := h.recordUseCase.FindByUserID(user_id, offset, limit)
+	records, totalRecords, err := h.recordUseCase.FindByUserID(fmt.Sprint(userID), offset, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -83,4 +82,29 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 			"limit":        limit,
 		},
 	})
+}
+
+func (h *HttpRecordHandler) GetUserDashboardData(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+	var (
+		timeStartStr = c.Query("timeStart")
+		timeEndStr   = c.Query("timeEnd")
+		timeStart    time.Time
+		timeEnd      = time.Now()
+	)
+	if x, err := time.Parse(time.RFC3339, timeStartStr); err == nil {
+		timeStart = x
+	}
+	if x, err := time.Parse(time.RFC3339, timeEndStr); err == nil {
+		timeEnd = x
+	}
+
+	dashboardData, err := h.recordUseCase.GetDashboardDataByUserID(fmt.Sprint(userID), timeStart, timeEnd)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	return c.JSON(dashboardData)
 }

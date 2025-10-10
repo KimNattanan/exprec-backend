@@ -1,8 +1,9 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/KimNattanan/exprec-backend/internal/entities"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -18,38 +19,46 @@ func (r *GormRecordRepository) Save(record *entities.Record) error {
 	return r.db.Create(record).Error
 }
 
-func (r *GormRecordRepository) CountByUserID(user_id uuid.UUID) (int64, error) {
+func (r *GormRecordRepository) CountByUserID(userID string) (int64, error) {
 	var cnt int64
-	if err := r.db.Model(&entities.Record{}).Where("user_id = ?", user_id).Count(&cnt).Error; err != nil {
+	if err := r.db.Model(&entities.Record{}).Where("user_id = ?", userID).Count(&cnt).Error; err != nil {
 		return 0, err
 	}
 	return cnt, nil
 }
 
-func (r *GormRecordRepository) FindByID(id uuid.UUID) (*entities.Record, error) {
+func (r *GormRecordRepository) FindByID(id string) (*entities.Record, error) {
 	var record entities.Record
 	if err := r.db.First(&record, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &record, nil
 }
-func (r *GormRecordRepository) FindByUserID(user_id uuid.UUID, offset, limit int) ([]*entities.Record, int64, error) {
+func (r *GormRecordRepository) FindByUserID(userID string, offset, limit int) ([]*entities.Record, error) {
 	var recordValues []entities.Record
-	if err := r.db.Where("user_id = ?", user_id).Order("created_at DESC").Offset(offset).Limit(limit).Find(&recordValues).Error; err != nil {
-		return nil, 0, err
-	}
-	var totalRecords int64
-	if err := r.db.Model(&entities.Record{}).Where("user_id = ?", user_id).Count(&totalRecords).Error; err != nil {
-		return nil, 0, err
+	if err := r.db.Where("user_id = ?", userID).Order("created_at DESC").Offset(offset).Limit(limit).Find(&recordValues).Error; err != nil {
+		return nil, err
 	}
 	records := make([]*entities.Record, len(recordValues))
 	for i := range records {
 		records[i] = &recordValues[i]
 	}
-	return records, totalRecords, nil
+	return records, nil
 }
 
-func (r *GormRecordRepository) Delete(id uuid.UUID) error {
+func (r *GormRecordRepository) FindByUserIDWithTimeRange(userID string, timeStart, timeEnd time.Time) ([]*entities.Record, error) {
+	var recordValues []entities.Record
+	if err := r.db.Where("user_id = ? AND created_at >= ? AND created_at <= ?", userID, timeStart, timeEnd).Order("created_at DESC").Find(&recordValues).Error; err != nil {
+		return nil, err
+	}
+	records := make([]*entities.Record, len(recordValues))
+	for i := range records {
+		records[i] = &recordValues[i]
+	}
+	return records, nil
+}
+
+func (r *GormRecordRepository) Delete(id string) error {
 	var record entities.Record
 	if err := r.db.First(&record, "id = ?", id).Error; err != nil {
 		return err

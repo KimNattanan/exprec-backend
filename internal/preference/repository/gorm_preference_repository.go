@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +13,7 @@ func NewGormPreferenceRepository(db *gorm.DB) PreferenceRepository {
 	return &GormPreferenceRepository{db: db}
 }
 
-func (r *GormPreferenceRepository) FindByUserID(userID uuid.UUID) (*entities.Preference, error) {
+func (r *GormPreferenceRepository) FindByUserID(userID string) (*entities.Preference, error) {
 	var preference entities.Preference
 	if err := r.db.First(&preference, "user_id = ?", userID).Error; err != nil {
 		return nil, err
@@ -22,7 +21,7 @@ func (r *GormPreferenceRepository) FindByUserID(userID uuid.UUID) (*entities.Pre
 	return &preference, nil
 }
 
-func (r *GormPreferenceRepository) Patch(userID uuid.UUID, preference *entities.Preference) error {
+func (r *GormPreferenceRepository) Patch(userID string, preference *entities.Preference) error {
 	result := r.db.Model(&entities.Preference{}).Where("user_id = ?", userID).Updates(preference)
 	if result.Error != nil {
 		return result.Error

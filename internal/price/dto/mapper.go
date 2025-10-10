@@ -41,9 +41,6 @@ func FromPriceSaveRequest(price *PriceSaveRequest) (*entities.Price, error) {
 		nextID    uuid.UUID
 		nextIDPtr *uuid.UUID
 	)
-	if err != nil {
-		return nil, err
-	}
 	if price.PrevID != "" {
 		prevID, err = uuid.Parse(price.PrevID)
 		if err != nil {

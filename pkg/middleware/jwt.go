@@ -22,9 +22,9 @@ func AuthRequired(c *fiber.Ctx) error {
 	}
 
 	claim := token.Claims.(jwt.MapClaims)
-	user_id := claim["user_id"]
+	userID := claim["user_id"]
 
-	c.Locals("user_id", user_id)
+	c.Locals("user_id", userID)
 
 	return c.Next()
 }
