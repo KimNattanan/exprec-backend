@@ -114,6 +114,7 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		Secure:   isProd,
 		SameSite: "None",
 		Path:     "/",
+		Domain:   ".exprec.kim",
 	})
 
 	return c.Redirect(os.Getenv("FRONTEND_OAUTH_REDIRECT_URL"), fiber.StatusSeeOther)
