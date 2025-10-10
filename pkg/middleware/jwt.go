@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"os"
 
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
@@ -13,11 +12,6 @@ import (
 func AuthRequired(c *fiber.Ctx) error {
 	cookie := c.Cookies("loginToken")
 	jwtSecretKey := os.Getenv("JWT_SECRET")
-
-	log.Println("REQUEST:", c.Request())
-	log.Println("COOKIE:", cookie)
-	cookieHeader := c.Get("Cookie")
-	log.Println("RAW COOKIE HEADER:", cookieHeader)
 
 	token, err := jwt.ParseWithClaims(cookie, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecretKey), nil

@@ -37,7 +37,6 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 }
 
 func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
-	log.Println("Getting user...")
 	user_id, err := uuid.Parse(c.Locals("user_id").(string))
 	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
@@ -47,7 +46,6 @@ func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	log.Println("Getting user success user:", user)
 
 	return c.JSON(dto.ToUserResponse(user))
 }
