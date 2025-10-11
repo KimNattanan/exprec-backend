@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -43,7 +42,10 @@ func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
 	if err := h.recordUseCase.Delete(id); err != nil {
 		return responses.Error(c, err)
 	}
@@ -51,8 +53,8 @@ func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 	var (
@@ -69,7 +71,7 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
-	records, totalRecords, err := h.recordUseCase.FindByUserID(fmt.Sprint(userID), offset, limit)
+	records, totalRecords, err := h.recordUseCase.FindByUserID(userID, offset, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -85,8 +87,8 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) GetUserDashboardData(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 	var (
@@ -102,7 +104,7 @@ func (h *HttpRecordHandler) GetUserDashboardData(c *fiber.Ctx) error {
 		timeEnd = x
 	}
 
-	dashboardData, err := h.recordUseCase.GetDashboardDataByUserID(fmt.Sprint(userID), timeStart, timeEnd)
+	dashboardData, err := h.recordUseCase.GetDashboardDataByUserID(userID, timeStart, timeEnd)
 	if err != nil {
 		return responses.Error(c, err)
 	}

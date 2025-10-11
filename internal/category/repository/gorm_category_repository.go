@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -23,14 +24,14 @@ func (r *GormCategoryRepository) Save(ctx context.Context, category *entities.Ca
 	return tx.Create(category).Error
 }
 
-func (r *GormCategoryRepository) FindByID(id string) (*entities.Category, error) {
+func (r *GormCategoryRepository) FindByID(id uuid.UUID) (*entities.Category, error) {
 	var category entities.Category
 	if err := r.db.Preload("Prev").Preload("Next").First(&category, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &category, nil
 }
-func (r *GormCategoryRepository) FindByUserID(userID string) ([]*entities.Category, error) {
+func (r *GormCategoryRepository) FindByUserID(userID uuid.UUID) ([]*entities.Category, error) {
 	var categoryValues []entities.Category
 	if err := r.db.Preload("Prev").Preload("Next").Find(&categoryValues, "user_id = ?", userID).Error; err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func (r *GormCategoryRepository) FindByUserID(userID string) ([]*entities.Catego
 	return categories, nil
 }
 
-func (r *GormCategoryRepository) PatchValue(ctx context.Context, id string, category *entities.Category) error {
+func (r *GormCategoryRepository) PatchValue(ctx context.Context, id uuid.UUID, category *entities.Category) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
 	if !ok {
 		tx = r.db
@@ -59,7 +60,7 @@ func (r *GormCategoryRepository) PatchValue(ctx context.Context, id string, cate
 	}
 	return nil
 }
-func (r *GormCategoryRepository) PatchPrev(ctx context.Context, id string, prevID string) error {
+func (r *GormCategoryRepository) PatchPrev(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
 	if !ok {
 		tx = r.db
@@ -73,7 +74,7 @@ func (r *GormCategoryRepository) PatchPrev(ctx context.Context, id string, prevI
 	}
 	return nil
 }
-func (r *GormCategoryRepository) PatchNext(ctx context.Context, id string, nextID string) error {
+func (r *GormCategoryRepository) PatchNext(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
 	tx, ok := ctx.Value("tx").(*gorm.DB)
 	if !ok {
 		tx = r.db
@@ -88,7 +89,7 @@ func (r *GormCategoryRepository) PatchNext(ctx context.Context, id string, nextI
 	return nil
 }
 
-func (r *GormCategoryRepository) Delete(id string) error {
+func (r *GormCategoryRepository) Delete(id uuid.UUID) error {
 	var category entities.Category
 	if err := r.db.First(&category, "id = ?", id).Error; err != nil {
 		return err

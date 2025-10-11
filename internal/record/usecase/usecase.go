@@ -7,6 +7,7 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/record/dto"
 	"github.com/KimNattanan/exprec-backend/internal/record/repository"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/google/uuid"
 )
 
 type RecordService struct {
@@ -18,7 +19,7 @@ func NewRecordService(recordRepo repository.RecordRepository) RecordUseCase {
 }
 
 func (s *RecordService) Save(record *entities.Record) error {
-	cnt, err := s.recordRepo.CountByUserID(record.UserID.String())
+	cnt, err := s.recordRepo.CountByUserID(record.UserID)
 	if err != nil {
 		return err
 	}
@@ -28,11 +29,11 @@ func (s *RecordService) Save(record *entities.Record) error {
 	return s.recordRepo.Save(record)
 }
 
-func (s *RecordService) FindByID(id string) (*entities.Record, error) {
+func (s *RecordService) FindByID(id uuid.UUID) (*entities.Record, error) {
 	return s.recordRepo.FindByID(id)
 }
 
-func (s *RecordService) FindByUserID(userID string, offset, limit int) ([]*entities.Record, int64, error) {
+func (s *RecordService) FindByUserID(userID uuid.UUID, offset, limit int) ([]*entities.Record, int64, error) {
 	records, err := s.recordRepo.FindByUserID(userID, offset, limit)
 	if err != nil {
 		return nil, 0, err
@@ -44,11 +45,7 @@ func (s *RecordService) FindByUserID(userID string, offset, limit int) ([]*entit
 	return records, totalRecords, nil
 }
 
-func (s *RecordService) Delete(id string) error {
-	return s.recordRepo.Delete(id)
-}
-
-func (s *RecordService) GetDashboardDataByUserID(userID string, timeStart time.Time, timeEnd time.Time) (*dto.DashboardData, error) {
+func (s *RecordService) GetDashboardDataByUserID(userID uuid.UUID, timeStart time.Time, timeEnd time.Time) (*dto.DashboardData, error) {
 	records, err := s.recordRepo.FindByUserIDWithTimeRange(userID, timeStart, timeEnd)
 	if err != nil {
 		return nil, err
@@ -66,4 +63,8 @@ func (s *RecordService) GetDashboardDataByUserID(userID string, timeStart time.T
 		AmountByCategory: amountByCategory,
 		Records:          records,
 	}, nil
+}
+
+func (s *RecordService) Delete(id uuid.UUID) error {
+	return s.recordRepo.Delete(id)
 }

@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -14,6 +13,7 @@ import (
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -37,12 +37,12 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 }
 
 func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
-	user, err := h.userUseCase.FindByID(fmt.Sprint(userID))
+	user, err := h.userUseCase.FindByID(userID)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -131,11 +131,11 @@ func (h *HttpUserHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	if err := h.userUseCase.Delete(fmt.Sprint(userID)); err != nil {
+	if err := h.userUseCase.Delete(userID); err != nil {
 		return responses.Error(c, err)
 	}
 	return responses.Message(c, fiber.StatusOK, "user deleted")

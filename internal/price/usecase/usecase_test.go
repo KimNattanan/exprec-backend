@@ -16,33 +16,33 @@ import (
 
 type mockPriceRepo struct {
 	save         func(ctx context.Context, price *entities.Price) error
-	findByID     func(id string) (*entities.Price, error)
-	findByUserID func(userID string) ([]*entities.Price, error)
-	patchValue   func(ctx context.Context, id string, price *entities.Price) error
-	patchPrev    func(ctx context.Context, id string, prevID string) error
-	patchNext    func(ctx context.Context, id string, nextID string) error
-	delete       func(id string) error
+	findByID     func(id uuid.UUID) (*entities.Price, error)
+	findByUserID func(userID uuid.UUID) ([]*entities.Price, error)
+	patchValue   func(ctx context.Context, id uuid.UUID, price *entities.Price) error
+	patchPrev    func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error
+	patchNext    func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error
+	delete       func(id uuid.UUID) error
 }
 
 func (m *mockPriceRepo) Save(ctx context.Context, price *entities.Price) error {
 	return m.save(ctx, price)
 }
-func (m *mockPriceRepo) FindByID(id string) (*entities.Price, error) {
+func (m *mockPriceRepo) FindByID(id uuid.UUID) (*entities.Price, error) {
 	return m.findByID(id)
 }
-func (m *mockPriceRepo) FindByUserID(userID string) ([]*entities.Price, error) {
+func (m *mockPriceRepo) FindByUserID(userID uuid.UUID) ([]*entities.Price, error) {
 	return m.findByUserID(userID)
 }
-func (m *mockPriceRepo) PatchValue(ctx context.Context, id string, price *entities.Price) error {
+func (m *mockPriceRepo) PatchValue(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 	return m.patchValue(ctx, id, price)
 }
-func (m *mockPriceRepo) PatchPrev(ctx context.Context, id string, prevID string) error {
+func (m *mockPriceRepo) PatchPrev(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
 	return m.patchPrev(ctx, id, prevID)
 }
-func (m *mockPriceRepo) PatchNext(ctx context.Context, id string, nextID string) error {
+func (m *mockPriceRepo) PatchNext(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
 	return m.patchNext(ctx, id, nextID)
 }
-func (m *mockPriceRepo) Delete(id string) error {
+func (m *mockPriceRepo) Delete(id uuid.UUID) error {
 	return m.delete(id)
 }
 
@@ -68,13 +68,13 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patchValue: func(ctx context.Context, id string, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 				return gorm.ErrRecordNotFound
 			},
-			patchPrev: func(ctx context.Context, id string, prevID string) error {
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
 				return gorm.ErrRecordNotFound
 			},
-			patchNext: func(ctx context.Context, id string, nextID string) error {
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
 				return gorm.ErrRecordNotFound
 			},
 		}
@@ -108,30 +108,22 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patchValue: func(ctx context.Context, id string, price *entities.Price) error {
-				if id == l.ID.String() {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+				if id == l.ID {
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchPrev: func(ctx context.Context, id string, prevIDStr string) error {
-				prevID, err := uuid.Parse(prevIDStr)
-				if err != nil {
-					return err
-				}
-				if id == l.ID.String() {
-					l.PrevID = &prevID
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				if id == l.ID {
+					l.PrevID = prevID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchNext: func(ctx context.Context, id string, nextIDStr string) error {
-				nextID, err := uuid.Parse(nextIDStr)
-				if err != nil {
-					return err
-				}
-				if id == l.ID.String() {
-					l.NextID = &nextID
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+				if id == l.ID {
+					l.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
@@ -169,30 +161,22 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patchValue: func(ctx context.Context, id string, price *entities.Price) error {
-				if id == r.ID.String() {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
+				if id == r.ID {
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchPrev: func(ctx context.Context, id string, prevIDStr string) error {
-				prevID, err := uuid.Parse(prevIDStr)
-				if err != nil {
-					return err
-				}
-				if id == r.ID.String() {
-					r.PrevID = &prevID
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
+				if id == r.ID {
+					r.PrevID = prevID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchNext: func(ctx context.Context, id string, nextIDStr string) error {
-				nextID, err := uuid.Parse(nextIDStr)
-				if err != nil {
-					return err
-				}
-				if id == r.ID.String() {
-					r.NextID = &nextID
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
+				if id == r.ID {
+					r.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
@@ -235,49 +219,33 @@ func TestSave(t *testing.T) {
 				price.ID = uID
 				return nil
 			},
-			patchValue: func(ctx context.Context, id string, price *entities.Price) error {
+			patchValue: func(ctx context.Context, id uuid.UUID, price *entities.Price) error {
 				switch id {
-				case l.ID.String():
+				case l.ID:
 					return nil
-				case r.ID.String():
+				case r.ID:
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchPrev: func(ctx context.Context, id string, prevIDStr string) error {
+			patchPrev: func(ctx context.Context, id uuid.UUID, prevID *uuid.UUID) error {
 				switch id {
-				case l.ID.String():
-					prevID, err := uuid.Parse(prevIDStr)
-					if err != nil {
-						return err
-					}
-					l.PrevID = &prevID
+				case l.ID:
+					l.PrevID = prevID
 					return nil
-				case r.ID.String():
-					prevID, err := uuid.Parse(prevIDStr)
-					if err != nil {
-						return err
-					}
-					r.PrevID = &prevID
+				case r.ID:
+					r.PrevID = prevID
 					return nil
 				}
 				return gorm.ErrRecordNotFound
 			},
-			patchNext: func(ctx context.Context, id string, nextIDStr string) error {
+			patchNext: func(ctx context.Context, id uuid.UUID, nextID *uuid.UUID) error {
 				switch id {
-				case l.ID.String():
-					nextID, err := uuid.Parse(nextIDStr)
-					if err != nil {
-						return err
-					}
-					l.NextID = &nextID
+				case l.ID:
+					l.NextID = nextID
 					return nil
-				case r.ID.String():
-					nextID, err := uuid.Parse(nextIDStr)
-					if err != nil {
-						return err
-					}
-					r.NextID = &nextID
+				case r.ID:
+					r.NextID = nextID
 					return nil
 				}
 				return gorm.ErrRecordNotFound

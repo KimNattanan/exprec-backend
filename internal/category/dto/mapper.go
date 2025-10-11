@@ -41,6 +41,9 @@ func FromCategorySaveRequest(category *CategorySaveRequest) (*entities.Category,
 		nextID    uuid.UUID
 		nextIDPtr *uuid.UUID
 	)
+	if err != nil {
+		return nil, err
+	}
 	if category.PrevID != "" {
 		prevID, err = uuid.Parse(category.PrevID)
 		if err != nil {

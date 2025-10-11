@@ -1,8 +1,6 @@
 package rest
 
 import (
-	"fmt"
-
 	"github.com/KimNattanan/exprec-backend/internal/price/dto"
 	"github.com/KimNattanan/exprec-backend/internal/price/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
@@ -40,7 +38,10 @@ func (h *HttpPriceHandler) Save(c *fiber.Ctx) error {
 }
 
 func (h *HttpPriceHandler) Patch(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
 	req := new(dto.PricePatchRequest)
 	if err := c.BodyParser(req); err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
@@ -57,7 +58,10 @@ func (h *HttpPriceHandler) Patch(c *fiber.Ctx) error {
 }
 
 func (h *HttpPriceHandler) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
 	if err := h.priceUseCase.Delete(id); err != nil {
 		return responses.Error(c, err)
 	}
@@ -65,11 +69,11 @@ func (h *HttpPriceHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpPriceHandler) FindByUserID(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
-	prices, err := h.priceUseCase.FindByUserID(fmt.Sprint(userID))
+	prices, err := h.priceUseCase.FindByUserID(userID)
 	if err != nil {
 		return responses.Error(c, err)
 	}

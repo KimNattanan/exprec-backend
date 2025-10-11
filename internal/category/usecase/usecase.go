@@ -6,6 +6,7 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/category/repository"
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/internal/transaction"
+	"github.com/google/uuid"
 )
 
 type CategoryService struct {
@@ -26,12 +27,12 @@ func (s *CategoryService) Save(ctx context.Context, category *entities.Category)
 			return err
 		}
 		if category.PrevID != nil {
-			if err := s.categoryRepo.PatchNext(txCtx, category.PrevID.String(), category.ID.String()); err != nil {
+			if err := s.categoryRepo.PatchNext(txCtx, *category.PrevID, &category.ID); err != nil {
 				return err
 			}
 		}
 		if category.NextID != nil {
-			if err := s.categoryRepo.PatchPrev(txCtx, category.NextID.String(), category.ID.String()); err != nil {
+			if err := s.categoryRepo.PatchPrev(txCtx, *category.NextID, &category.ID); err != nil {
 				return err
 			}
 		}
@@ -39,15 +40,15 @@ func (s *CategoryService) Save(ctx context.Context, category *entities.Category)
 	})
 }
 
-func (s *CategoryService) FindByID(id string) (*entities.Category, error) {
+func (s *CategoryService) FindByID(id uuid.UUID) (*entities.Category, error) {
 	return s.categoryRepo.FindByID(id)
 }
 
-func (s *CategoryService) FindByUserID(userID string) ([]*entities.Category, error) {
+func (s *CategoryService) FindByUserID(userID uuid.UUID) ([]*entities.Category, error) {
 	return s.categoryRepo.FindByUserID(userID)
 }
 
-func (s *CategoryService) Patch(ctx context.Context, id string, category *entities.Category) (*entities.Category, error) {
+func (s *CategoryService) Patch(ctx context.Context, id uuid.UUID, category *entities.Category) (*entities.Category, error) {
 	err := s.txManager.Do(ctx, func(txCtx context.Context) error {
 		categoryOld, err := s.categoryRepo.FindByID(id)
 		if err != nil {
@@ -55,24 +56,24 @@ func (s *CategoryService) Patch(ctx context.Context, id string, category *entiti
 		}
 		if categoryOld.PrevID != category.PrevID {
 			if categoryOld.PrevID != nil {
-				if err := s.categoryRepo.PatchNext(txCtx, categoryOld.PrevID.String(), categoryOld.NextID.String()); err != nil {
+				if err := s.categoryRepo.PatchNext(txCtx, *categoryOld.PrevID, categoryOld.NextID); err != nil {
 					return err
 				}
 			}
 			if category.PrevID != nil {
-				if err := s.categoryRepo.PatchNext(txCtx, category.PrevID.String(), id); err != nil {
+				if err := s.categoryRepo.PatchNext(txCtx, *category.PrevID, &id); err != nil {
 					return err
 				}
 			}
 		}
 		if categoryOld.NextID != category.NextID {
 			if categoryOld.NextID != nil {
-				if err := s.categoryRepo.PatchPrev(txCtx, categoryOld.NextID.String(), categoryOld.PrevID.String()); err != nil {
+				if err := s.categoryRepo.PatchPrev(txCtx, *categoryOld.NextID, categoryOld.PrevID); err != nil {
 					return err
 				}
 			}
 			if category.NextID != nil {
-				if err := s.categoryRepo.PatchPrev(txCtx, category.NextID.String(), id); err != nil {
+				if err := s.categoryRepo.PatchPrev(txCtx, *category.NextID, &id); err != nil {
 					return err
 				}
 			}
@@ -85,6 +86,6 @@ func (s *CategoryService) Patch(ctx context.Context, id string, category *entiti
 	return s.categoryRepo.FindByID(id)
 }
 
-func (s *CategoryService) Delete(id string) error {
+func (s *CategoryService) Delete(id uuid.UUID) error {
 	return s.categoryRepo.Delete(id)
 }

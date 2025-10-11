@@ -10,7 +10,7 @@ import (
 )
 
 func Start() {
-	db, err := setupDependencies("development")
+	db, err := setupDependencies("production")
 	if err != nil {
 		log.Fatalf("failed to setup dependencies: %v", err)
 	}

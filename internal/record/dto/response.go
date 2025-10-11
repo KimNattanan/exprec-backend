@@ -16,7 +16,7 @@ type RecordResponse struct {
 }
 
 type DashboardData struct {
-	TotalAmount float32
+	TotalAmount      float32
 	AmountByCategory map[string]float32
-	Records []*entities.Record
+	Records          []*entities.Record
 }

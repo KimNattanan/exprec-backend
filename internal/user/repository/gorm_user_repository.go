@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +22,7 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 	return &user, nil
 }
 
-func (r *GormUserRepository) FindByID(id string) (*entities.User, error) {
+func (r *GormUserRepository) FindByID(id uuid.UUID) (*entities.User, error) {
 	var user entities.User
 	if err := r.db.Preload("Prices").First(&user, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func (r *GormUserRepository) Save(user *entities.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *GormUserRepository) Patch(id string, user *entities.User) error {
+func (r *GormUserRepository) Patch(id uuid.UUID, user *entities.User) error {
 	result := r.db.Model(&entities.User{}).Where("id = ?", id).Updates(user)
 	if result.Error != nil {
 		return result.Error
@@ -56,7 +57,7 @@ func (r *GormUserRepository) Patch(id string, user *entities.User) error {
 	return nil
 }
 
-func (r *GormUserRepository) Delete(id string) error {
+func (r *GormUserRepository) Delete(id uuid.UUID) error {
 	result := r.db.Delete(&entities.User{}, "id = ?", id)
 	if result.Error != nil {
 		return result.Error

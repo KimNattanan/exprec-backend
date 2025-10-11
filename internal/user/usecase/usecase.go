@@ -10,6 +10,7 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/user/repository"
 	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 )
@@ -69,7 +70,7 @@ func (s *UserService) FindByEmail(email string) (*entities.User, error) {
 	return s.userRepo.FindByEmail(email)
 }
 
-func (s *UserService) FindByID(id string) (*entities.User, error) {
+func (s *UserService) FindByID(id uuid.UUID) (*entities.User, error) {
 	return s.userRepo.FindByID(id)
 }
 
@@ -77,14 +78,14 @@ func (s *UserService) FindAll() ([]*entities.User, error) {
 	return s.userRepo.FindAll()
 }
 
-func (s *UserService) Patch(id string, user *entities.User) (*entities.User, error) {
+func (s *UserService) Patch(id uuid.UUID, user *entities.User) (*entities.User, error) {
 	if err := s.userRepo.Patch(id, user); err != nil {
 		return nil, err
 	}
 	return s.userRepo.FindByID(id)
 }
 
-func (s *UserService) Delete(id string) error {
+func (s *UserService) Delete(id uuid.UUID) error {
 	return s.userRepo.Delete(id)
 }
 
