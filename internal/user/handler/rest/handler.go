@@ -98,7 +98,11 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 
+	domain := ""
 	isProd := os.Getenv("ENV") == "production"
+	if isProd {
+		domain = ".exprec.kim"
+	}
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
@@ -112,9 +116,8 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		HTTPOnly: true,
 		Secure:   isProd,
-		SameSite: "None",
-		Path:     "/",
-		Domain:   ".exprec.kim",
+		SameSite: "Lax",
+		Domain:   domain,
 	})
 
 	return c.Redirect(os.Getenv("FRONTEND_OAUTH_REDIRECT_URL"), fiber.StatusSeeOther)

@@ -17,7 +17,7 @@ func Connect() (*gorm.DB, error) {
 		password = os.Getenv("DB_PASSWORD")
 		dbname   = os.Getenv("DB_NAME")
 		isProd   = os.Getenv("ENV") == "production"
-		sslmode  = "none"
+		sslmode  = "disable"
 	)
 	if isProd {
 		sslmode = "require"

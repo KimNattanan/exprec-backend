@@ -53,14 +53,17 @@ func (s *RecordService) GetDashboardDataByUserID(userID uuid.UUID, timeStart tim
 
 	var totalAmount float32
 	amountByCategory := make(map[string]float32)
+	categoryColor := make(map[string]string)
 	for _, e := range records {
 		totalAmount += e.Amount
 		amountByCategory[e.Category] += e.Amount
+		categoryColor[e.Category] = e.CategoryBgColor
 	}
 
 	return &dto.DashboardData{
 		TotalAmount:      totalAmount,
 		AmountByCategory: amountByCategory,
+		CategoryColor:    categoryColor,
 		Records:          records,
 	}, nil
 }

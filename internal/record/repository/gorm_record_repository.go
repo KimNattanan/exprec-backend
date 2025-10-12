@@ -49,7 +49,7 @@ func (r *GormRecordRepository) FindByUserID(userID uuid.UUID, offset, limit int)
 
 func (r *GormRecordRepository) FindByUserIDWithTimeRange(userID uuid.UUID, timeStart, timeEnd time.Time) ([]*entities.Record, error) {
 	var recordValues []entities.Record
-	if err := r.db.Where("user_id = ? AND created_at >= ? AND created_at <= ?", userID, timeStart, timeEnd).Order("created_at DESC").Find(&recordValues).Error; err != nil {
+	if err := r.db.Where("user_id = ? AND created_at >= ? AND created_at <= ?", userID, timeStart, timeEnd).Order("created_at ASC").Find(&recordValues).Error; err != nil {
 		return nil, err
 	}
 	records := make([]*entities.Record, len(recordValues))

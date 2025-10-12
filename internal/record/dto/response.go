@@ -16,7 +16,8 @@ type RecordResponse struct {
 }
 
 type DashboardData struct {
-	TotalAmount      float32
-	AmountByCategory map[string]float32
-	Records          []*entities.Record
+	TotalAmount      float32            `json:"total_amount"`
+	AmountByCategory map[string]float32 `json:"amount_by_category"`
+	CategoryColor    map[string]string  `json:"category_color"`
+	Records          []*entities.Record `json:"records"`
 }
