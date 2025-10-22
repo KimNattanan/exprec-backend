@@ -1,30 +1,31 @@
 package middleware
 
 import (
-	"os"
-
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
+	"github.com/KimNattanan/exprec-backend/pkg/token"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthRequired(c *fiber.Ctx) error {
-	cookie := c.Cookies("loginToken")
-	jwtSecretKey := os.Getenv("JWT_SECRET")
+func JWTMiddleware(secretKey string) fiber.Handler {
 
-	token, err := jwt.ParseWithClaims(cookie, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(jwtSecretKey), nil
-	})
+	tokenMaker := token.NewJWTMaker(secretKey)
 
-	if err != nil || !token.Valid {
-		return responses.Error(c, appError.ErrUnauthorized)
+	return func(c *fiber.Ctx) error {
+
+		auth := c.Get("Authorization")
+		if auth == "" {
+			return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "missing token")
+		}
+		tokenStr := auth[len("Bearer "):]
+
+		claims, err := tokenMaker.VerfiyToken(tokenStr)
+		if err != nil {
+			return responses.ErrorWithMessage(c, appError.ErrUnauthorized, err.Error())
+		}
+
+		c.Locals("user_id", claims.ID)
+
+		return c.Next()
 	}
-
-	claim := token.Claims.(jwt.MapClaims)
-	userID := claim["user_id"]
-
-	c.Locals("user_id", userID)
-
-	return c.Next()
 }

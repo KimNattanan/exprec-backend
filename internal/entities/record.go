@@ -19,6 +19,5 @@ type Record struct {
 
 func (u *Record) BeforeCreate(db *gorm.DB) (err error) {
 	u.ID = uuid.New()
-	u.CreatedAt = time.Now()
 	return
 }

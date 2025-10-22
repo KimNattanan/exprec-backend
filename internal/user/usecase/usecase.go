@@ -12,7 +12,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/oauth2"
 )
 
 type UserService struct {
@@ -89,15 +88,15 @@ func (s *UserService) Delete(id uuid.UUID) error {
 	return s.userRepo.Delete(id)
 }
 
-func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{}, token *oauth2.Token) (string, *entities.User, error) {
+func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{}) (*entities.User, error) {
 	email, ok := userInfo["email"].(string)
 	name, _ := userInfo["name"].(string)
 	if !ok || email == "" {
-		return "", nil, apperror.ErrInvalidData
+		return nil, apperror.ErrInvalidData
 	}
 	user, err := s.userRepo.FindByEmail(email)
 	if err != nil && !errors.Is(err, apperror.ErrRecordNotFound) {
-		return "", nil, err
+		return nil, err
 	}
 	if user == nil {
 		user = &entities.User{
@@ -106,21 +105,44 @@ func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{},
 			Password: "",
 		}
 		if err := s.userRepo.Save(user); err != nil {
-			return "", nil, err
+			return nil, err
 		}
 	}
-	user.Password = ""
 
-	claims := jwt.MapClaims{
-		"user_id":   user.ID,
-		"user_info": dto.ToUserResponse(user),
-		"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
-	}
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtSecret := os.Getenv("JWT_SECRET")
-	tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
-	if err != nil {
-		return "", nil, err
-	}
-	return tokenString, user, nil
+	return user, nil
+	// user.Password = ""
+
+	// claims := jwt.MapClaims{
+	// 	"user_id":   user.ID,
+	// 	"user_info": dto.ToUserResponse(user),
+	// 	"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
+	// }
+	// jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// jwtSecret := os.Getenv("JWT_SECRET")
+	// tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
+	// if err != nil {
+	// 	return "", "", err
+	// }
+	// return tokenString, nil
 }
+
+// func (s *UserService) RefreshToken(userID uuid.UUID) (string, error) {
+// 	user, err := s.userRepo.FindByID(userID)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	user.Password = ""
+
+// 	claims := jwt.MapClaims{
+// 		"user_id":   user.ID,
+// 		"user_info": dto.ToUserResponse(user),
+// 		"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
+// 	}
+// 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+// 	jwtSecret := os.Getenv("JWT_SECRET")
+// 	tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }

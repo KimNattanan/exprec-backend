@@ -9,6 +9,9 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/transaction"
 	"github.com/KimNattanan/exprec-backend/pkg/middleware"
 
+	sessionRepository "github.com/KimNattanan/exprec-backend/internal/session/repository"
+	sessionUseCase "github.com/KimNattanan/exprec-backend/internal/session/usecase"
+
 	userHandler "github.com/KimNattanan/exprec-backend/internal/user/handler/rest"
 	userRepository "github.com/KimNattanan/exprec-backend/internal/user/repository"
 	userUseCase "github.com/KimNattanan/exprec-backend/internal/user/usecase"
@@ -31,15 +34,23 @@ import (
 )
 
 func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
-	api := app.Group("/api/v2", middleware.AuthRequired)
+	api := app.Group("/api/v2", middleware.JWTMiddleware(os.Getenv("JWT_SECRET")))
 
 	// === Dependency Wiring ===
 
 	txManager := transaction.NewGormTxManager(db)
 
+	sessionRepo := sessionRepository.NewGormSessionRepository(db)
+	sessionService := sessionUseCase.NewSessionService(sessionRepo)
+
 	userRepo := userRepository.NewGormUserRepository(db)
 	userService := userUseCase.NewUserService(userRepo)
-	userHandler := userHandler.NewHttpUserHandler(userService, os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"))
+	userHandler := userHandler.NewHttpUserHandler(
+		userService,
+		os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
+		os.Getenv("JWT_SECRET"),
+		sessionService,
+	)
 
 	preferenceRepo := preferenceRepository.NewGormPreferenceRepository(db)
 	preferenceService := preferenceUseCase.NewPreferenceService(preferenceRepo)
@@ -57,10 +68,9 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	recordService := recordUseCase.NewRecordService(recordRepo)
 	recordHandler := recordHandler.NewHttpRecordHandler(recordService)
 
-	// === Public Routes ===
+	// === Private Routes ===
 
 	api.Get("/me", userHandler.GetUser)
-	api.Get("/me/logout", userHandler.Logout)
 
 	userGroup := api.Group("/users")
 	userGroup.Delete("/", userHandler.Delete)

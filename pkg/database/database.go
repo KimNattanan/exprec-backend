@@ -38,6 +38,7 @@ func Connect() (*gorm.DB, error) {
 		&entities.Price{},
 		&entities.Category{},
 		&entities.Record{},
+		&entities.Session{},
 	); err != nil {
 		return nil, err
 	}

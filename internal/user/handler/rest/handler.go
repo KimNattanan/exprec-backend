@@ -8,10 +8,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/KimNattanan/exprec-backend/internal/entities"
+	sessionUseCase "github.com/KimNattanan/exprec-backend/internal/session/usecase"
 	"github.com/KimNattanan/exprec-backend/internal/user/dto"
 	"github.com/KimNattanan/exprec-backend/internal/user/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
+	"github.com/KimNattanan/exprec-backend/pkg/token"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
@@ -21,9 +24,11 @@ import (
 type HttpUserHandler struct {
 	userUseCase       usecase.UserUseCase
 	googleOauthConfig *oauth2.Config
+	tokenMaker        *token.JWTMaker
+	sessionUseCase    sessionUseCase.SessionUseCase
 }
 
-func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, redirectURL string) *HttpUserHandler {
+func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, redirectURL string, secretKey string, sessionUseCase sessionUseCase.SessionUseCase) *HttpUserHandler {
 	return &HttpUserHandler{
 		userUseCase: useCase,
 		googleOauthConfig: &oauth2.Config{
@@ -33,6 +38,8 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 			Scopes:       []string{"openid", "email", "profile"},
 			Endpoint:     google.Endpoint,
 		},
+		tokenMaker:     token.NewJWTMaker(secretKey),
+		sessionUseCase: sessionUseCase,
 	}
 }
 
@@ -82,19 +89,35 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	}
 
 	client := h.googleOauthConfig.Client(c.Context(), token)
-	res, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	clientRes, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to get user info")
 	}
-	defer res.Body.Close()
+	defer clientRes.Body.Close()
 
 	var userInfo map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&userInfo); err != nil {
+	if err := json.NewDecoder(clientRes.Body).Decode(&userInfo); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to decode user info")
 	}
 
-	jwtToken, _, err := h.userUseCase.LoginOrRegisterWithGoogle(userInfo, token)
+	user, err := h.userUseCase.LoginOrRegisterWithGoogle(userInfo)
 	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.ID.String(), user.Email, 72*time.Hour)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	session := &entities.Session{
+		ID: refreshClaims.RegisteredClaims.ID,
+		UserEmail: user.Email,
+		RefreshToken: refreshToken,
+		IsRevoked: false,
+		ExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
+	}
+	if err := h.sessionUseCase.Save(session); err != nil {
 		return responses.Error(c, err)
 	}
 
@@ -111,9 +134,9 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		Secure:   false,
 	})
 	c.Cookie(&fiber.Cookie{
-		Name:     "loginToken",
-		Value:    jwtToken,
-		Expires:  time.Now().Add(14 * 24 * time.Hour),
+		Name:     "token",
+		Value:    refreshToken,
+		Expires:  refreshClaims.RegisteredClaims.ExpiresAt.Time,
 		HTTPOnly: true,
 		Secure:   isProd,
 		SameSite: "Lax",
@@ -121,16 +144,6 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	})
 
 	return c.Redirect(os.Getenv("FRONTEND_OAUTH_REDIRECT_URL"), fiber.StatusSeeOther)
-}
-
-func (h *HttpUserHandler) Logout(c *fiber.Ctx) error {
-	c.Cookie(&fiber.Cookie{
-		Name:     "loginToken",
-		Value:    "",
-		Expires:  time.Now(),
-		HTTPOnly: true,
-	})
-	return responses.Message(c, fiber.StatusOK, "logged out successfully")
 }
 
 func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {

@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 )
 
@@ -24,7 +26,12 @@ func ToRecordResponseList(records []*entities.Record) []*RecordResponse {
 }
 
 func FromRecordSaveRequest(record *RecordSaveRequest) (*entities.Record, error) {
+	createdAt, err := time.Parse(time.RFC3339, record.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
 	return &entities.Record{
+		CreatedAt:       createdAt,
 		Amount:          record.Amount,
 		Category:        record.Category,
 		CategoryBgColor: record.CategoryBgColor,

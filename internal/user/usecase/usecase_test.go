@@ -341,10 +341,9 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 		}
 		service := NewUserService(repo)
 
-		token, user, err := service.LoginOrRegisterWithGoogle(
-			map[string]interface{}{"email": email, "name": name}, nil)
+		user, err := service.LoginOrRegisterWithGoogle(
+			map[string]interface{}{"email": email, "name": name})
 		assert.NoError(t, err)
-		assert.NotEmpty(t, token)
 		assert.Equal(t, email, user.Email)
 		assert.Equal(t, name, user.Name)
 		assert.NotNil(t, savedUser)
@@ -362,20 +361,18 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 		}
 		service := NewUserService(repo)
 
-		token, user, err := service.LoginOrRegisterWithGoogle(
-			map[string]interface{}{"email": u.Email, "name": u.Name}, nil)
+		user, err := service.LoginOrRegisterWithGoogle(
+			map[string]interface{}{"email": u.Email, "name": u.Name})
 		assert.NoError(t, err)
-		assert.NotEmpty(t, token)
 		assert.Equal(t, u.Email, user.Email)
 	})
 	t.Run("missing email", func(t *testing.T) {
 		repo := &mockUserRepo{}
 		service := NewUserService(repo)
 
-		token, user, err := service.LoginOrRegisterWithGoogle(
-			map[string]interface{}{"name": "John"}, nil)
+		user, err := service.LoginOrRegisterWithGoogle(
+			map[string]interface{}{"name": "John"})
 		assert.ErrorIs(t, err, apperror.ErrInvalidData)
-		assert.Empty(t, token)
 		assert.Nil(t, user)
 	})
 
@@ -391,10 +388,9 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 		}
 		service := NewUserService(repo)
 
-		token, user, err := service.LoginOrRegisterWithGoogle(
-			map[string]interface{}{"email": email, "name": "John"}, nil)
+		user, err := service.LoginOrRegisterWithGoogle(
+			map[string]interface{}{"email": email, "name": "John"})
 		assert.Error(t, err)
-		assert.Empty(t, token)
 		assert.Nil(t, user)
 	})
 
@@ -407,10 +403,9 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 		}
 		service := NewUserService(repo)
 
-		token, user, err := service.LoginOrRegisterWithGoogle(
-			map[string]interface{}{"email": email, "name": "John"}, nil)
+		user, err := service.LoginOrRegisterWithGoogle(
+			map[string]interface{}{"email": email, "name": "John"})
 		assert.Error(t, err)
-		assert.Empty(t, token)
 		assert.Nil(t, user)
 	})
 }
