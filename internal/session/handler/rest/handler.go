@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"os"
 	"time"
 
 	"github.com/KimNattanan/exprec-backend/internal/session/dto"
@@ -23,21 +24,39 @@ func NewHttpSessionHandler(useCase usecase.SessionUseCase, secretKey string) *Ht
 	}
 }
 
-func (h *HttpSessionHandler) RenewToken(c *fiber.Ctx) error {
+func removeToken(c *fiber.Ctx) {
+	domain := ""
+	isProd := os.Getenv("ENV") == "production"
+	if isProd {
+		domain = ".exprec.kim"
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now(),
+		HTTPOnly: true,
+		Domain:   domain,
+	})
+}
 
+func (h *HttpSessionHandler) RenewToken(c *fiber.Ctx) error {
 	tokenStr := c.Cookies("token")
 	claims, err := h.tokenMaker.VerfiyToken(tokenStr)
 	if err != nil {
+		removeToken(c)
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 	session, err := h.sessionUseCase.FindByID(claims.RegisteredClaims.ID)
 	if err != nil {
+		removeToken(c)
 		return responses.Error(c, appError.ErrInternalServer)
 	}
 	if session.IsRevoked {
+		removeToken(c)
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 	if session.UserEmail != claims.Email {
+		removeToken(c)
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 
@@ -56,16 +75,12 @@ func (h *HttpSessionHandler) Logout(c *fiber.Ctx) error {
 	tokenStr := c.Cookies("token")
 	claims, err := h.tokenMaker.VerfiyToken(tokenStr)
 	if err != nil {
+		removeToken(c)
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 	if err := h.sessionUseCase.Delete(claims.RegisteredClaims.ID); err != nil {
 		return responses.Error(c, appError.ErrInternalServer)
 	}
-	c.Cookie(&fiber.Cookie{
-		Name:     "token",
-		Value:    "",
-		Expires:  time.Now(),
-		HTTPOnly: true,
-	})
+	removeToken(c)
 	return responses.Message(c, fiber.StatusOK, "logged out successfully")
 }
