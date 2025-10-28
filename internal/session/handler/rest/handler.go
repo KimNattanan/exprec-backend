@@ -6,6 +6,7 @@ import (
 
 	"github.com/KimNattanan/exprec-backend/internal/session/dto"
 	"github.com/KimNattanan/exprec-backend/internal/session/usecase"
+	userUseCase "github.com/KimNattanan/exprec-backend/internal/user/usecase"
 	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
 	"github.com/KimNattanan/exprec-backend/pkg/token"
@@ -15,27 +16,24 @@ import (
 type HttpSessionHandler struct {
 	tokenMaker     *token.JWTMaker
 	sessionUseCase usecase.SessionUseCase
+	userUseCase    userUseCase.UserUseCase
 }
 
-func NewHttpSessionHandler(useCase usecase.SessionUseCase, secretKey string) *HttpSessionHandler {
+func NewHttpSessionHandler(useCase usecase.SessionUseCase, userUseCase userUseCase.UserUseCase, secretKey string) *HttpSessionHandler {
 	return &HttpSessionHandler{
-		sessionUseCase: useCase,
 		tokenMaker:     token.NewJWTMaker(secretKey),
+		sessionUseCase: useCase,
+		userUseCase:    userUseCase,
 	}
 }
 
 func removeToken(c *fiber.Ctx) {
-	domain := ""
-	isProd := os.Getenv("ENV") == "production"
-	if isProd {
-		domain = ".exprec.kim"
-	}
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    "",
-		Expires:  time.Now(),
+		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
-		Domain:   domain,
+		Domain:   os.Getenv("DOMAIN"),
 	})
 }
 
@@ -56,6 +54,10 @@ func (h *HttpSessionHandler) RenewToken(c *fiber.Ctx) error {
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 	if session.UserEmail != claims.Email {
+		removeToken(c)
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+	if user, err := h.userUseCase.FindByEmail(session.UserEmail); err != nil || user == nil {
 		removeToken(c)
 		return responses.Error(c, appError.ErrUnauthorized)
 	}

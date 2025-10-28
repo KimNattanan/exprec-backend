@@ -22,11 +22,6 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 
 	sessionRepo := sessionRepository.NewGormSessionRepository(db)
 	sessionService := sessionUseCase.NewSessionService(sessionRepo)
-	sessionHandler := sessionHandler.NewHttpSessionHandler(
-		sessionService,
-		os.Getenv("JWT_SECRET"),
-	)
-
 	userRepo := userRepository.NewGormUserRepository(db)
 	userService := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(
@@ -34,6 +29,11 @@ func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
 		os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
 		os.Getenv("JWT_SECRET"),
 		sessionService,
+	)
+	sessionHandler := sessionHandler.NewHttpSessionHandler(
+		sessionService,
+		userService,
+		os.Getenv("JWT_SECRET"),
 	)
 
 	// === Public Routes ===

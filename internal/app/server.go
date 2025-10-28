@@ -2,11 +2,9 @@ package app
 
 import (
 	"log"
-	"os"
-
-	"github.com/KimNattanan/exprec-backend/pkg/aws_lambda"
-	"github.com/aws/aws-lambda-go/lambda"
-	fiberadapter "github.com/awslabs/aws-lambda-go-api-proxy/fiber"
+	// "github.com/KimNattanan/exprec-backend/pkg/aws_lambda"
+	// "github.com/aws/aws-lambda-go/lambda"
+	// fiberadapter "github.com/awslabs/aws-lambda-go-api-proxy/fiber"
 )
 
 func Start() {
@@ -16,10 +14,11 @@ func Start() {
 	}
 	app := setupRestServer(db)
 
-	if os.Getenv("ENV") == "production" {
-		fiberLambda := fiberadapter.New(app)
-		lambda.Start(aws_lambda.Handler(fiberLambda))
-	} else {
-		app.Listen(":8000")
-	}
+	app.Listen(":8000")
+	// if os.Getenv("ENV") == "production" {
+	// 	fiberLambda := fiberadapter.New(app)
+	// 	lambda.Start(aws_lambda.Handler(fiberLambda))
+	// } else {
+	// 	app.Listen(":8000")
+	// }
 }

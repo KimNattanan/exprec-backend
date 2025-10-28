@@ -121,11 +121,8 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 
-	domain := ""
+	domain := os.Getenv("DOMAIN")
 	isProd := os.Getenv("ENV") == "production"
-	if isProd {
-		domain = ".exprec.kim"
-	}
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
