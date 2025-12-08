@@ -111,11 +111,11 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	}
 
 	session := &entities.Session{
-		ID: refreshClaims.RegisteredClaims.ID,
-		UserEmail: user.Email,
+		ID:           refreshClaims.RegisteredClaims.ID,
+		UserEmail:    user.Email,
 		RefreshToken: refreshToken,
-		IsRevoked: false,
-		ExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		IsRevoked:    false,
+		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 	}
 	if err := h.sessionUseCase.Save(session); err != nil {
 		return responses.Error(c, err)
