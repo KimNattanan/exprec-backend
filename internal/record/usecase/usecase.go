@@ -6,7 +6,7 @@ import (
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/internal/record/dto"
 	"github.com/KimNattanan/exprec-backend/internal/record/repository"
-	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +24,7 @@ func (s *RecordService) Save(record *entities.Record) error {
 		return err
 	}
 	if cnt >= 100 {
-		return appError.ErrLimitExceeded
+		return apperror.ErrLimitExceeded
 	}
 	return s.recordRepo.Save(record)
 }

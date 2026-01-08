@@ -2,23 +2,29 @@ package app
 
 import (
 	"log"
-	// "github.com/KimNattanan/exprec-backend/pkg/aws_lambda"
-	// "github.com/aws/aws-lambda-go/lambda"
-	// fiberadapter "github.com/awslabs/aws-lambda-go-api-proxy/fiber"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/KimNattanan/exprec-backend/pkg/httpserver"
 )
 
 func Start() {
-	db, err := setupDependencies("development")
+	cfg, db, err := setupDependencies("development")
 	if err != nil {
 		log.Fatalf("failed to setup dependencies: %v", err)
 	}
-	app := setupRestServer(db)
+	app := setupRestServer(db, cfg)
 
-	app.Listen(":8000")
-	// if os.Getenv("ENV") == "production" {
-	// 	fiberLambda := fiberadapter.New(app)
-	// 	lambda.Start(aws_lambda.Handler(fiberLambda))
-	// } else {
-	// 	app.Listen(":8000")
-	// }
+	httpserver.Start(app, cfg)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	<-c
+	log.Println("Shutting down server...")
+
+	httpserver.Shutdown(app)
+
+	log.Println("Server shutted down.")
 }

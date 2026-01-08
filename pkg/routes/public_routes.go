@@ -1,39 +1,44 @@
 package routes
 
 import (
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	sessionHandler "github.com/KimNattanan/exprec-backend/internal/session/handler/rest"
 	sessionRepository "github.com/KimNattanan/exprec-backend/internal/session/repository"
 	sessionUseCase "github.com/KimNattanan/exprec-backend/internal/session/usecase"
+	"github.com/KimNattanan/exprec-backend/pkg/config"
 
 	userHandler "github.com/KimNattanan/exprec-backend/internal/user/handler/rest"
 	userRepository "github.com/KimNattanan/exprec-backend/internal/user/repository"
 	userUseCase "github.com/KimNattanan/exprec-backend/internal/user/usecase"
 )
 
-func RegisterPublicRoutes(app fiber.Router, db *gorm.DB) {
-	api := app.Group("/api/v2")
+func RegisterPublicRoutes(app fiber.Router, db *gorm.DB, cfg *config.Config) {
+	api := app.Group("/api/v1")
 
 	// === Dependency Wiring ===
 
 	sessionRepo := sessionRepository.NewGormSessionRepository(db)
 	sessionService := sessionUseCase.NewSessionService(sessionRepo)
 	userRepo := userRepository.NewGormUserRepository(db)
-	userService := userUseCase.NewUserService(userRepo)
+	userService := userUseCase.NewUserService(userRepo, cfg.JWTSecret)
 	userHandler := userHandler.NewHttpUserHandler(
 		userService,
-		os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
-		os.Getenv("JWT_SECRET"),
+		cfg.GoogleClientID,
+		cfg.GoogleClientSecret,
+		cfg.GoogleRedirectURL,
+		cfg.JWTSecret,
 		sessionService,
+		cfg.AppEnv,
+		cfg.AppDomain,
+		cfg.FrontendRedirectURL,
 	)
 	sessionHandler := sessionHandler.NewHttpSessionHandler(
 		sessionService,
 		userService,
-		os.Getenv("JWT_SECRET"),
+		cfg.JWTSecret,
+		cfg.AppDomain,
 	)
 
 	// === Public Routes ===

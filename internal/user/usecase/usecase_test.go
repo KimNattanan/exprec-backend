@@ -50,7 +50,7 @@ func TestRegister(t *testing.T) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Register(&entities.User{Email: "john@example.com", Password: "password123"})
 		assert.NoError(t, err)
@@ -64,7 +64,7 @@ func TestRegister(t *testing.T) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Register(&entities.User{Email: "john@example.com", Password: "password123"})
 		require.Error(t, err)
@@ -79,7 +79,7 @@ func TestRegister(t *testing.T) {
 				return &entities.User{ID: uuid.New(), Email: "john@example.com", Password: "password123"}, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Register(&entities.User{Email: "john@example.com", Password: "password123"})
 		assert.ErrorIs(t, err, apperror.ErrAlreadyExists)
@@ -93,7 +93,7 @@ func TestRegister(t *testing.T) {
 				return nil, errors.New("database error")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Register(&entities.User{Email: "john@example.com", Password: "password123"})
 		require.Error(t, err)
@@ -110,7 +110,7 @@ func TestLogin(t *testing.T) {
 				return user, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		token, u, err := service.Login("john@example.com", "password123")
 		assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestLogin(t *testing.T) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		token, u, err := service.Login("john@example.com", "password123")
 		assert.Error(t, err)
@@ -138,7 +138,7 @@ func TestLogin(t *testing.T) {
 				return user, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		token, u, err := service.Login("john@example.com", "wrongpass")
 		assert.Error(t, err)
@@ -152,7 +152,7 @@ func TestLogin(t *testing.T) {
 				return nil, errors.New("db error")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		token, u, err := service.Login("john@example.com", "password123")
 		assert.Error(t, err)
@@ -168,7 +168,7 @@ func TestFindByEmail(t *testing.T) {
 				return user, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindByEmail("john@example.com")
 		assert.NoError(t, err)
@@ -180,7 +180,7 @@ func TestFindByEmail(t *testing.T) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindByEmail("unknown@example.com")
 		assert.ErrorIs(t, err, apperror.ErrRecordNotFound)
@@ -195,7 +195,7 @@ func TestFindByID(t *testing.T) {
 				return user, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindByID(user.ID)
 		assert.NoError(t, err)
@@ -208,7 +208,7 @@ func TestFindByID(t *testing.T) {
 				return nil, apperror.ErrRecordNotFound
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindByID(id)
 		assert.ErrorIs(t, err, apperror.ErrRecordNotFound)
@@ -226,7 +226,7 @@ func TestFindAll(t *testing.T) {
 				return users, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindAll()
 		assert.NoError(t, err)
@@ -238,7 +238,7 @@ func TestFindAll(t *testing.T) {
 				return nil, errors.New("db error")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.FindAll()
 		assert.Error(t, err)
@@ -257,7 +257,7 @@ func TestPatch(t *testing.T) {
 				return user, nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.Patch(id, user)
 		assert.NoError(t, err)
@@ -271,7 +271,7 @@ func TestPatch(t *testing.T) {
 				return errors.New("patch failed")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.Patch(id, user)
 		assert.Error(t, err)
@@ -289,7 +289,7 @@ func TestPatch(t *testing.T) {
 				return nil, errors.New("find failed")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		result, err := service.Patch(id, user)
 		assert.Error(t, err)
@@ -304,7 +304,7 @@ func TestDelete(t *testing.T) {
 				return nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Delete(id)
 		assert.NoError(t, err)
@@ -316,7 +316,7 @@ func TestDelete(t *testing.T) {
 				return errors.New("delete failed")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		err := service.Delete(id)
 		assert.Error(t, err)
@@ -339,7 +339,7 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 				return nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		user, err := service.LoginOrRegisterWithGoogle(
 			map[string]interface{}{"email": email, "name": name})
@@ -359,7 +359,7 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 				return nil
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		user, err := service.LoginOrRegisterWithGoogle(
 			map[string]interface{}{"email": u.Email, "name": u.Name})
@@ -368,7 +368,7 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 	})
 	t.Run("missing email", func(t *testing.T) {
 		repo := &mockUserRepo{}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		user, err := service.LoginOrRegisterWithGoogle(
 			map[string]interface{}{"name": "John"})
@@ -386,7 +386,7 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 				return errors.New("save failed")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		user, err := service.LoginOrRegisterWithGoogle(
 			map[string]interface{}{"email": email, "name": "John"})
@@ -401,7 +401,7 @@ func TestLoginOrRegisterWithGoogle(t *testing.T) {
 				return nil, errors.New("db error")
 			},
 		}
-		service := NewUserService(repo)
+		service := NewUserService(repo, "secret")
 
 		user, err := service.LoginOrRegisterWithGoogle(
 			map[string]interface{}{"email": email, "name": "John"})

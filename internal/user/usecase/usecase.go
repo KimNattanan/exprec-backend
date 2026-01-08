@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"os"
 	"time"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
@@ -15,11 +14,15 @@ import (
 )
 
 type UserService struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
+	jwtSecret string
 }
 
-func NewUserService(userRepo repository.UserRepository) UserUseCase {
-	return &UserService{userRepo: userRepo}
+func NewUserService(userRepo repository.UserRepository, jwtSecret string) UserUseCase {
+	return &UserService{
+		userRepo:  userRepo,
+		jwtSecret: jwtSecret,
+	}
 }
 
 func (s *UserService) Register(user *entities.User) error {
@@ -56,7 +59,7 @@ func (s *UserService) Login(email, password string) (string, *entities.User, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtSecret := os.Getenv("JWT_SECRET")
+	jwtSecret := s.jwtSecret
 	tokenString, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		return "", nil, err
@@ -110,39 +113,4 @@ func (s *UserService) LoginOrRegisterWithGoogle(userInfo map[string]interface{})
 	}
 
 	return user, nil
-	// user.Password = ""
-
-	// claims := jwt.MapClaims{
-	// 	"user_id":   user.ID,
-	// 	"user_info": dto.ToUserResponse(user),
-	// 	"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
-	// }
-	// jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// jwtSecret := os.Getenv("JWT_SECRET")
-	// tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
-	// if err != nil {
-	// 	return "", "", err
-	// }
-	// return tokenString, nil
 }
-
-// func (s *UserService) RefreshToken(userID uuid.UUID) (string, error) {
-// 	user, err := s.userRepo.FindByID(userID)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	user.Password = ""
-
-// 	claims := jwt.MapClaims{
-// 		"user_id":   user.ID,
-// 		"user_info": dto.ToUserResponse(user),
-// 		"exp":       time.Now().Add(time.Hour * 72).Unix(), // 3 days
-// 	}
-// 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-// 	jwtSecret := os.Getenv("JWT_SECRET")
-// 	tokenString, err := jwtToken.SignedString([]byte(jwtSecret))
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return tokenString, nil
-// }

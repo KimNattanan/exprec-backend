@@ -1,7 +1,7 @@
 package responses
 
 import (
-	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,9 +18,9 @@ func Message(c *fiber.Ctx, status int, message string) error {
 }
 
 func Error(c *fiber.Ctx, err error) error {
-	return c.Status(appError.StatusCode(err)).JSON(ErrorResponse{Error: err.Error()})
+	return c.Status(apperror.StatusCode(err)).JSON(ErrorResponse{Error: err.Error()})
 }
 
 func ErrorWithMessage(c *fiber.Ctx, err error, message string) error {
-	return c.Status(appError.StatusCode(err)).JSON(ErrorResponse{Error: message})
+	return c.Status(apperror.StatusCode(err)).JSON(ErrorResponse{Error: message})
 }

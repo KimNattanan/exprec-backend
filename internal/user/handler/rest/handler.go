@@ -5,14 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log"
-	"os"
 	"time"
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	sessionUseCase "github.com/KimNattanan/exprec-backend/internal/session/usecase"
 	"github.com/KimNattanan/exprec-backend/internal/user/dto"
 	"github.com/KimNattanan/exprec-backend/internal/user/usecase"
-	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
 	"github.com/KimNattanan/exprec-backend/pkg/token"
 	"github.com/gofiber/fiber/v2"
@@ -22,13 +21,16 @@ import (
 )
 
 type HttpUserHandler struct {
-	userUseCase       usecase.UserUseCase
-	googleOauthConfig *oauth2.Config
-	tokenMaker        *token.JWTMaker
-	sessionUseCase    sessionUseCase.SessionUseCase
+	userUseCase         usecase.UserUseCase
+	googleOauthConfig   *oauth2.Config
+	tokenMaker          *token.JWTMaker
+	sessionUseCase      sessionUseCase.SessionUseCase
+	appEnv              string
+	appDomain           string
+	frontendRedirectURL string
 }
 
-func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, redirectURL string, secretKey string, sessionUseCase sessionUseCase.SessionUseCase) *HttpUserHandler {
+func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, redirectURL string, secretKey string, sessionUseCase sessionUseCase.SessionUseCase, appEnv, appDomain, frontendRedirectURL string) *HttpUserHandler {
 	return &HttpUserHandler{
 		userUseCase: useCase,
 		googleOauthConfig: &oauth2.Config{
@@ -38,16 +40,16 @@ func NewHttpUserHandler(useCase usecase.UserUseCase, clientID, clientSecret, red
 			Scopes:       []string{"openid", "email", "profile"},
 			Endpoint:     google.Endpoint,
 		},
-		tokenMaker:     token.NewJWTMaker(secretKey),
-		sessionUseCase: sessionUseCase,
+		tokenMaker:          token.NewJWTMaker(secretKey),
+		sessionUseCase:      sessionUseCase,
+		appEnv:              appEnv,
+		appDomain:           appDomain,
+		frontendRedirectURL: frontendRedirectURL,
 	}
 }
 
 func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	userID := c.Locals("user_id").(uuid.UUID)
 
 	user, err := h.userUseCase.FindByID(userID)
 	if err != nil {
@@ -74,18 +76,18 @@ func (h *HttpUserHandler) GoogleLogin(c *fiber.Ctx) error {
 func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 	state := c.Cookies("oauthstate")
 	if c.Query("state") != state {
-		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "invalid oauth state")
+		return responses.ErrorWithMessage(c, apperror.ErrUnauthorized, "invalid oauth state")
 	}
 
 	code := c.Query("code")
 	if code == "" {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "code not found")
+		return responses.ErrorWithMessage(c, apperror.ErrInvalidData, "code not found")
 	}
 
 	token, err := h.googleOauthConfig.Exchange(c.Context(), code)
 	if err != nil {
 		log.Printf("failed to exchange token: %v\n", err)
-		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "failed to exchange token")
+		return responses.ErrorWithMessage(c, apperror.ErrUnauthorized, "failed to exchange token")
 	}
 
 	client := h.googleOauthConfig.Client(c.Context(), token)
@@ -121,8 +123,8 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 
-	domain := os.Getenv("DOMAIN")
-	isProd := os.Getenv("ENV") == "production"
+	domain := h.appDomain
+	isProd := h.appEnv == "production"
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "oauthstate",
@@ -140,14 +142,11 @@ func (h *HttpUserHandler) GoogleCallback(c *fiber.Ctx) error {
 		Domain:   domain,
 	})
 
-	return c.Redirect(os.Getenv("FRONTEND_OAUTH_REDIRECT_URL"), fiber.StatusSeeOther)
+	return c.Redirect(h.frontendRedirectURL, fiber.StatusSeeOther)
 }
 
 func (h *HttpUserHandler) Delete(c *fiber.Ctx) error {
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	userID := c.Locals("user_id").(uuid.UUID)
 	if err := h.userUseCase.Delete(userID); err != nil {
 		return responses.Error(c, err)
 	}

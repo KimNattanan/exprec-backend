@@ -7,7 +7,7 @@ import (
 
 	"github.com/KimNattanan/exprec-backend/internal/record/dto"
 	"github.com/KimNattanan/exprec-backend/internal/record/usecase"
-	appError "github.com/KimNattanan/exprec-backend/pkg/apperror"
+	"github.com/KimNattanan/exprec-backend/pkg/apperror"
 	"github.com/KimNattanan/exprec-backend/pkg/responses"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -24,16 +24,13 @@ func NewHttpRecordHandler(useCase usecase.RecordUseCase) *HttpRecordHandler {
 func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 	req := new(dto.RecordSaveRequest)
 	if err := c.BodyParser(req); err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
+		return responses.Error(c, apperror.ErrInvalidData)
 	}
 	record, err := dto.FromRecordSaveRequest(req)
 	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
+		return responses.Error(c, apperror.ErrInvalidData)
 	}
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	userID := c.Locals("user_id").(uuid.UUID)
 	record.UserID = userID
 	if err := h.recordUseCase.Save(record); err != nil {
 		return responses.Error(c, err)
@@ -44,7 +41,7 @@ func (h *HttpRecordHandler) Save(c *fiber.Ctx) error {
 func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
+		return responses.Error(c, apperror.ErrInvalidData)
 	}
 	if err := h.recordUseCase.Delete(id); err != nil {
 		return responses.Error(c, err)
@@ -53,10 +50,7 @@ func (h *HttpRecordHandler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	userID := c.Locals("user_id").(uuid.UUID)
 	var (
 		pageStr  = c.Query("page")
 		limitStr = c.Query("limit")
@@ -87,10 +81,7 @@ func (h *HttpRecordHandler) FindByUserID(c *fiber.Ctx) error {
 }
 
 func (h *HttpRecordHandler) GetUserDashboardData(c *fiber.Ctx) error {
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
+	userID := c.Locals("user_id").(uuid.UUID)
 	var (
 		timeStartStr = c.Query("timeStart")
 		timeEndStr   = c.Query("timeEnd")

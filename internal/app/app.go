@@ -1,38 +1,52 @@
 package app
 
 import (
-	"log"
-
+	"github.com/KimNattanan/exprec-backend/internal/entities"
+	"github.com/KimNattanan/exprec-backend/pkg/config"
 	"github.com/KimNattanan/exprec-backend/pkg/database"
 	"github.com/KimNattanan/exprec-backend/pkg/middleware"
 	"github.com/KimNattanan/exprec-backend/pkg/routes"
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
-func setupDependencies(env string) (*gorm.DB, error) {
-	envFile := ".env"
-	if env != "" {
-		envFile = ".env." + env
-	}
-	if err := godotenv.Load(envFile); err != nil {
-		log.Printf("Warning: could not load .env file: %v", err)
-	}
+func setupDependencies(env string) (*config.Config, *gorm.DB, error) {
+	cfg := config.LoadConfig(env)
 
-	db, err := database.Connect()
+	db, err := database.Connect(cfg.DBDSN)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return db, nil
+	if env == "test" {
+		db.Migrator().DropTable(
+			&entities.User{},
+			&entities.Preference{},
+			&entities.Price{},
+			&entities.Category{},
+			&entities.Record{},
+			&entities.Session{},
+		)
+	}
+	if err := db.Migrator().AutoMigrate(
+		&entities.User{},
+		&entities.Preference{},
+		&entities.Price{},
+		&entities.Category{},
+		&entities.Record{},
+		&entities.Session{},
+	); err != nil {
+		return nil, nil, err
+	}
+
+	return cfg, db, nil
 }
 
-func setupRestServer(db *gorm.DB) *fiber.App {
+func setupRestServer(db *gorm.DB, cfg *config.Config) *fiber.App {
 	app := fiber.New()
-	middleware.FiberMiddleware(app)
-	routes.RegisterPublicRoutes(app, db)
-	routes.RegisterPrivateRoutes(app, db)
+	middleware.FiberMiddleware(app, cfg.FrontendURL)
+	routes.RegisterPublicRoutes(app, db, cfg)
+	routes.RegisterPrivateRoutes(app, db, cfg)
 	routes.RegisterNotFoundRoute(app)
 	return app
 }

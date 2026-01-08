@@ -5,7 +5,7 @@ import (
 
 	"github.com/KimNattanan/exprec-backend/internal/entities"
 	"github.com/KimNattanan/exprec-backend/internal/price/repository"
-	"github.com/KimNattanan/exprec-backend/internal/transaction"
+	"github.com/KimNattanan/exprec-backend/pkg/transaction"
 	"github.com/google/uuid"
 )
 

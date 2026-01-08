@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"github.com/KimNattanan/exprec-backend/internal/transaction"
+	"github.com/KimNattanan/exprec-backend/pkg/config"
 	"github.com/KimNattanan/exprec-backend/pkg/middleware"
+	"github.com/KimNattanan/exprec-backend/pkg/transaction"
 
 	sessionRepository "github.com/KimNattanan/exprec-backend/internal/session/repository"
 	sessionUseCase "github.com/KimNattanan/exprec-backend/internal/session/usecase"
@@ -33,8 +32,8 @@ import (
 	preferenceUseCase "github.com/KimNattanan/exprec-backend/internal/preference/usecase"
 )
 
-func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
-	api := app.Group("/api/v2", middleware.JWTMiddleware(os.Getenv("JWT_SECRET")))
+func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB, cfg *config.Config) {
+	api := app.Group("/api/v1", middleware.JWTMiddleware(cfg.JWTSecret))
 
 	// === Dependency Wiring ===
 
@@ -44,12 +43,17 @@ func RegisterPrivateRoutes(app fiber.Router, db *gorm.DB) {
 	sessionService := sessionUseCase.NewSessionService(sessionRepo)
 
 	userRepo := userRepository.NewGormUserRepository(db)
-	userService := userUseCase.NewUserService(userRepo)
+	userService := userUseCase.NewUserService(userRepo, cfg.JWTSecret)
 	userHandler := userHandler.NewHttpUserHandler(
 		userService,
-		os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_OAUTH_REDIRECT_URL"),
-		os.Getenv("JWT_SECRET"),
+		cfg.GoogleClientID,
+		cfg.GoogleClientSecret,
+		cfg.GoogleRedirectURL,
+		cfg.JWTSecret,
 		sessionService,
+		cfg.AppEnv,
+		cfg.AppDomain,
+		cfg.FrontendRedirectURL,
 	)
 
 	preferenceRepo := preferenceRepository.NewGormPreferenceRepository(db)

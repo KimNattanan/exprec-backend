@@ -6,7 +6,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/KimNattanan/exprec-backend/internal/entities"
-	"github.com/KimNattanan/exprec-backend/internal/transaction"
+	"github.com/KimNattanan/exprec-backend/pkg/transaction"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
